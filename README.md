@@ -97,6 +97,10 @@ The layout is built mobile-first with Tailwind breakpoints:
 - [x] **Database Schema Foundation**: adopted the Supabase-ready schema for `users`, `categories`,
       `foods`, `reservations`, `gallery`, and `settings`. Added a repository layer per table, Zod
       validation at the service boundary, and rewired every service and mock dataset to match.
-- [ ] Chapter 2 — TBD (awaiting approval to proceed)
+- [x] **Chapter 2 — Home Page**: full landing page built on top of the service layer — hero with
+      calls to action, a Featured Dishes section pulling live data from `FoodService` and
+      `CategoryService`, a highlights section, a reservation call-to-action banner, and an about
+      teaser.
+- [ ] Chapter 3 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
