@@ -111,6 +111,10 @@ The layout is built mobile-first with Tailwind breakpoints:
 - [x] **Chapter 5 — Gallery Page**: responsive photo grid (2/3/4 columns across mobile, tablet,
       desktop) pulling from `GalleryService.getAllImages()`, with seeded sample gallery mock data
       and a placeholder tile for entries without a photo yet.
-- [ ] Chapter 6 — TBD (awaiting approval to proceed)
+- [x] **Chapter 6 — About & Contact Pages**: both driven entirely by `SettingsService` (no new
+      schema entity). About adds a story section, a values grid, and a full weekly hours listing.
+      Contact adds clickable phone/email links, the full weekly hours, social links (hidden when
+      none are set), and a map placeholder.
+- [ ] Chapter 7 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
