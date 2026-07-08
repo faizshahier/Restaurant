@@ -17,6 +17,22 @@ export type CreateUserInput = z.infer<typeof createUserSchema>
 export const updateUserSchema = createUserSchema.partial()
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
 
+// Public-facing auth schemas. Kept separate from createUserSchema/updateUserSchema
+// (which are for admin user-management via UserService) since self-registration
+// should never let a caller set their own `role`.
+export const signUpSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  email: z.email('Enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+export type SignUpInput = z.infer<typeof signUpSchema>
+
+export const signInSchema = z.object({
+  email: z.email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+})
+export type SignInInput = z.infer<typeof signInSchema>
+
 export const createCategorySchema = z.object({
   name: z.string().trim().min(1, 'Category name is required'),
 })

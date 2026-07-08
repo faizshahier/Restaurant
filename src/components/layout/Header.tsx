@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import { SettingsService } from '../../services'
 
 const NAV_LINKS = [
@@ -13,6 +14,36 @@ const NAV_LINKS = [
 
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
   `transition-colors hover:text-brand-300 ${isActive ? 'text-brand-300' : 'text-charcoal-50'}`
+
+function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
+  const { user, isLoading, signOut } = useAuth()
+
+  if (isLoading) return null
+
+  if (user) {
+    return (
+      <div className="flex items-center gap-3 text-sm">
+        <span className="text-charcoal-100">Hi, {user.name.split(' ')[0]}</span>
+        <button
+          type="button"
+          onClick={() => {
+            void signOut()
+            onNavigate?.()
+          }}
+          className="font-medium text-brand-300 hover:underline"
+        >
+          Sign Out
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <Link to="/sign-in" onClick={onNavigate} className="text-sm font-medium text-brand-300 hover:underline">
+      Sign In
+    </Link>
+  )
+}
 
 export function Header() {
   const [restaurantName, setRestaurantName] = useState('The Restaurant')
@@ -37,13 +68,16 @@ export function Header() {
           {restaurantName}
         </NavLink>
 
-        <nav className="hidden gap-8 text-sm font-medium md:flex">
-          {NAV_LINKS.map((link) => (
-            <NavLink key={link.to} to={link.to} end={link.to === '/'} className={navLinkClasses}>
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="hidden items-center gap-8 md:flex">
+          <nav className="flex gap-8 text-sm font-medium">
+            {NAV_LINKS.map((link) => (
+              <NavLink key={link.to} to={link.to} end={link.to === '/'} className={navLinkClasses}>
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <AuthSection />
+        </div>
 
         <button
           type="button"
@@ -78,6 +112,9 @@ export function Header() {
               {link.label}
             </NavLink>
           ))}
+          <div className="mt-2 border-t border-charcoal-700 px-3 pt-3">
+            <AuthSection onNavigate={() => setIsMenuOpen(false)} />
+          </div>
         </nav>
       )}
     </header>

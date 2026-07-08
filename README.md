@@ -30,7 +30,9 @@ npm run format    # format the codebase with Prettier
 src/
   components/
     layout/        # Header, Footer, Layout shell, shared page primitives
-  pages/            # One component per route (placeholders until their chapter)
+    form/           # Shared form primitives (Field, inputClasses)
+  context/          # React context providers (AuthContext / useAuth)
+  pages/            # One component per route
   router/           # React Router route definitions
   services/         # Business logic layer (see below)
   repositories/      # Data-access layer, one per table (see below)
@@ -115,6 +117,12 @@ The layout is built mobile-first with Tailwind breakpoints:
       schema entity). About adds a story section, a values grid, and a full weekly hours listing.
       Contact adds clickable phone/email links, the full weekly hours, social links (hidden when
       none are set), and a map placeholder.
-- [ ] Chapter 7 — TBD (awaiting approval to proceed)
+- [x] **Chapter 7 — Authentication**: Sign In and Sign Up pages validated with new `signInSchema` /
+      `signUpSchema` Zod schemas and wired to `AuthService`. Added an `AuthContext` (`useAuth` hook)
+      providing global session state, and updated the Header to show a `Sign In` link when logged
+      out or the user's name and a `Sign Out` button when logged in (both desktop and mobile nav).
+      Extracted the shared `Field`/`inputClasses` form primitives out of the Reservations page into
+      `src/components/form/Field.tsx` for reuse across all three forms.
+- [ ] Chapter 8 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
