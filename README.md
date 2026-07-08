@@ -31,10 +31,10 @@ src/
   components/
     layout/        # Header, Footer, Layout shell, shared page primitives
     form/           # Shared form primitives (Field, inputClasses)
-    auth/           # Route guards (RequireAdmin)
+    auth/           # Route guards (RequireRole)
   context/          # React context providers (AuthContext / useAuth)
   pages/            # One component per route
-    admin/           # Admin-only pages, gated by RequireAdmin
+    admin/           # Admin/manager pages, gated by RequireRole
   router/           # React Router route definitions
   services/         # Business logic layer (see below)
   repositories/      # Data-access layer, one per table (see below)
@@ -48,18 +48,31 @@ src/
 The app is modeled around a Supabase-ready Postgres schema. Types in `src/types/database.ts` mirror
 the tables 1:1 (snake_case columns included) so no mapping layer is needed once Supabase is wired up.
 
-| Table          | Columns                                                                                                                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `users`        | `id, name, email, password, role (Admin \| Customer), created_at, updated_at`                                                                          |
-| `categories`   | `id, name, created_at, updated_at`                                                                                                                     |
-| `foods`        | `id, name, description, price, image, category_id, available, created_at, updated_at`                                                                  |
-| `reservations` | `id, customer_name, phone, guests, reservation_date, reservation_time, notes, status (Pending\|Approved\|Rejected\|Cancelled), created_at, updated_at` |
-| `gallery`      | `id, image_url, title, created_at, updated_at`                                                                                                         |
-| `settings`     | `restaurant_name, logo, phone, email, address, opening_hours, social_links` (single row)                                                               |
+| Table        | Columns                                                                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`      | `id, name, email, phone_number, password, role (Admin \| Customer \| restaurant_manager), created_at, updated_at`                                                |
+| `categories` | `id, name, created_at, updated_at`                                                                                                                               |
+| `foods`      | `id, name, description, price, discount_percentage, image, category_id, available, created_at, updated_at`                                                       |
+| `orders`     | `id, customer_name, phone, items (food_id, food_name, quantity, price)[], total, notes, status (Pending\|Preparing\|Shipped\|Cancelled), created_at, updated_at` |
+| `gallery`    | `id, image_url, title, created_at, updated_at`                                                                                                                   |
+| `settings`   | `restaurant_name, logo, phone, email, address, delivery_zone, opening_hours, social_links` (single row)                                                          |
 
 > `users.password` is part of the schema as given, but once Supabase Auth is wired up, credentials
 > move to `supabase.auth.*` and this table becomes profile data only — see the `TODO(supabase)`
-> comments in `AuthService` and `UserRepository`.
+> comments in `AuthService` and `UserRepository`. `orders.items` is modeled as a JSON column for
+> simplicity; a normalized schema would use a separate `order_items` table with foreign keys to
+> `orders` and `foods`.
+
+### Restaurant manager role & single-tenant scope
+
+`restaurant_manager` keeps its exact spec-mandated snake_case value even though it differs from the
+`Admin`/`Customer` casing elsewhere — that value was an explicit requirement. There is deliberately
+**no `restaurants` table and no IDOR/object-ownership checks**: the app models a single restaurant
+(the existing singleton `settings` row), so there is nothing to enumerate or tamper across tenants.
+If this ever becomes a multi-restaurant platform, every restaurant-scoped table would need a
+`restaurant_id` column and every repository method would need to filter by the caller's
+`restaurant_id`, validated server-side on every request — that's the point at which IDOR protection
+becomes meaningful rather than dead code.
 
 ## Architecture: Repositories + Services + Validation
 
@@ -75,16 +88,16 @@ Data flows through three layers, each replaceable independently:
    `available`). Nothing outside `src/services/` and `src/repositories/` should change when Supabase
    is finally connected.
 
-| Service              | Repository              | Responsibility                                      |
-| -------------------- | ----------------------- | --------------------------------------------------- |
-| `AuthService`        | `UserRepository`        | Sign in, sign up, sign out, current session         |
-| `UserService`        | `UserRepository`        | User profile records (password never exposed)       |
-| `FoodService`        | `FoodRepository`        | Menu items (dishes/drinks)                          |
-| `CategoryService`    | `CategoryRepository`    | Menu categories                                     |
-| `ReservationService` | `ReservationRepository` | Table reservations and status transitions           |
-| `GalleryService`     | `GalleryRepository`     | Photo gallery                                       |
-| `SettingsService`    | `SettingsRepository`    | Restaurant name, logo, contact info, hours, socials |
-| `StorageService`     | —                       | File uploads (menu photos, gallery images)          |
+| Service           | Repository           | Responsibility                                                                                          |
+| ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------- |
+| `AuthService`     | `UserRepository`     | Sign in, sign up, sign out, current session                                                             |
+| `UserService`     | `UserRepository`     | User profile records (password never exposed)                                                           |
+| `FoodService`     | `FoodRepository`     | Menu items (dishes/drinks), including discounts                                                         |
+| `CategoryService` | `CategoryRepository` | Menu categories                                                                                         |
+| `OrderService`    | `OrderRepository`    | Food orders and status transitions (computes `total` server-side, never trusts a client-supplied total) |
+| `GalleryService`  | `GalleryRepository`  | Photo gallery                                                                                           |
+| `SettingsService` | `SettingsRepository` | Restaurant name, logo, contact info, delivery zone, hours                                               |
+| `StorageService`  | —                    | File uploads (menu photos, gallery images)                                                              |
 
 ## Responsive Design
 
@@ -148,6 +161,30 @@ The layout is built mobile-first with Tailwind breakpoints:
   copy (`[...mockX]`) from each `findAll`, matching how a real Supabase query always returns a fresh
   array. `ReservationRepository.findAll` was unaffected since it already used `.filter()`.
 
-- [ ] Chapter 10 — TBD (awaiting approval to proceed)
+- [x] **Chapter 10 — Restaurant Manager Panel**: added the `restaurant_manager` role (plus
+      `phone_number` on `users`) and a role-aware `RequireRole` guard (replacing `RequireAdmin`).
+      `AdminLayout`'s tabs are now filtered by role — a manager sees Orders/Foods/Analytics, an
+      admin additionally sees Categories, and `/admin/categories` is independently gated so a
+      manager can't reach it by URL even with the tab hidden. Seeded a demo manager login
+      (`manager@example.com` / `ManagerPass123!`, mock data only, alongside the existing admin
+      account).
+
+  **Reservations → Orders.** Per explicit direction, the dine-in reservation system was replaced
+  (not extended) by a food-order system with the new `Pending → Preparing → Shipped/Cancelled`
+  status flow: `Order`/`OrderStatus`/`OrderItem` types, `OrderRepository`, `OrderService` (computes
+  `total` server-side from `items`, never trusting a client-supplied total), the public `/order`
+  page (quantity picker over available foods instead of a date/guests booking form), and
+  `/admin/orders` (status filter pills + Start Preparing/Mark Shipped/Cancel actions). Chapters 4
+  and 8 above describe the reservation system as it existed before this change.
+
+  **Also added:** `discount_percentage` on `foods` (shown as a struck-through price + badge on
+  `FoodCard`, editable in `/admin/foods`), `delivery_zone` on `settings` (shown on the Contact
+  page), and a computed real-time Open/Closed badge in the Header (`src/lib/hours.ts`, derived from
+  `opening_hours` — never persisted).
+
+  **Scope note:** no `restaurants` table or IDOR/ownership checks were added — see "Restaurant
+  manager role & single-tenant scope" above for why, and what changes if this becomes multi-tenant.
+
+- [ ] Chapter 11 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.

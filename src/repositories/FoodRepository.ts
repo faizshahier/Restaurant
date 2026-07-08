@@ -8,6 +8,7 @@ const mockFoods: Food[] = [
     name: 'Bruschetta',
     description: 'Grilled bread rubbed with garlic and topped with olive oil, salt, and tomato.',
     price: 8.5,
+    discount_percentage: 0,
     image: '',
     category_id: 'cat-starters',
     available: true,
@@ -19,6 +20,7 @@ const mockFoods: Food[] = [
     name: 'Margherita Pizza',
     description: 'San Marzano tomatoes, fresh mozzarella, basil, extra virgin olive oil.',
     price: 15,
+    discount_percentage: 10,
     image: '',
     category_id: 'cat-mains',
     available: true,
@@ -30,6 +32,7 @@ const mockFoods: Food[] = [
     name: 'Tiramisu',
     description: 'Espresso-soaked ladyfingers layered with mascarpone cream.',
     price: 7,
+    discount_percentage: 0,
     image: '',
     category_id: 'cat-desserts',
     available: true,
@@ -42,6 +45,7 @@ export interface CreateFoodRow {
   name: string
   description: string
   price: number
+  discount_percentage: number
   image: string
   category_id: string
   available: boolean

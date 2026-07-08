@@ -1,6 +1,6 @@
 export { UserRepository } from './UserRepository'
 export { CategoryRepository } from './CategoryRepository'
 export { FoodRepository } from './FoodRepository'
-export { ReservationRepository, type ReservationFilters } from './ReservationRepository'
+export { OrderRepository, type OrderFilters } from './OrderRepository'
 export { GalleryRepository } from './GalleryRepository'
 export { SettingsRepository } from './SettingsRepository'

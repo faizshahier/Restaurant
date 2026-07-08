@@ -2,15 +2,28 @@ import type { User, UserRole } from '../types'
 
 const now = new Date().toISOString()
 
-// Demo credentials for local testing only: admin@example.com / AdminPass123!
-// Not a real password — never used once Supabase Auth is wired up (see AuthService).
+// Demo credentials for local testing only. Not real passwords — never used
+// once Supabase Auth is wired up (see AuthService).
+// - Site admin:        admin@example.com   / AdminPass123!
+// - Restaurant manager: manager@example.com / ManagerPass123!
 const mockUsers: User[] = [
   {
     id: 'usr-admin-1',
     name: 'Admin User',
     email: 'admin@example.com',
+    phone_number: null,
     password: 'AdminPass123!',
     role: 'Admin',
+    created_at: now,
+    updated_at: now,
+  },
+  {
+    id: 'usr-manager-1',
+    name: 'Riley Manager',
+    email: 'manager@example.com',
+    phone_number: '555-720-1010',
+    password: 'ManagerPass123!',
+    role: 'restaurant_manager',
     created_at: now,
     updated_at: now,
   },
@@ -21,6 +34,7 @@ export interface CreateUserRow {
   email: string
   password: string
   role: UserRole
+  phone_number?: string | null
 }
 
 /**
@@ -61,6 +75,7 @@ export class UserRepository {
       created_at: timestamp,
       updated_at: timestamp,
       ...data,
+      phone_number: data.phone_number ?? null,
     }
     mockUsers.push(user)
     return user

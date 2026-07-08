@@ -4,13 +4,14 @@ import { z } from 'zod'
 // before writing through a repository, mirroring the checks a real Supabase
 // setup would additionally enforce via Postgres constraints / RLS policies.
 
-export const userRoleSchema = z.enum(['Admin', 'Customer'])
+export const userRoleSchema = z.enum(['Admin', 'Customer', 'restaurant_manager'])
 
 export const createUserSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   email: z.email('Enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   role: userRoleSchema.default('Customer'),
+  phone_number: z.string().trim().min(1).nullable().optional(),
 })
 export type CreateUserInput = z.infer<typeof createUserSchema>
 
@@ -45,6 +46,7 @@ export const createFoodSchema = z.object({
   name: z.string().trim().min(1, 'Food name is required'),
   description: z.string().trim().min(1, 'Description is required'),
   price: z.number().positive('Price must be greater than zero'),
+  discount_percentage: z.number().min(0).max(100).default(0),
   image: z.string().trim().min(1, 'Image is required'),
   category_id: z.string().trim().min(1, 'Category is required'),
   available: z.boolean().default(true),
@@ -54,22 +56,27 @@ export type CreateFoodInput = z.infer<typeof createFoodSchema>
 export const updateFoodSchema = createFoodSchema.partial()
 export type UpdateFoodInput = z.infer<typeof updateFoodSchema>
 
-export const reservationStatusSchema = z.enum(['Pending', 'Approved', 'Rejected', 'Cancelled'])
+export const orderStatusSchema = z.enum(['Pending', 'Preparing', 'Shipped', 'Cancelled'])
 
-export const createReservationSchema = z.object({
+export const orderItemSchema = z.object({
+  food_id: z.string().trim().min(1),
+  food_name: z.string().trim().min(1),
+  quantity: z.number().int().positive('Quantity must be at least 1'),
+  price: z.number().nonnegative(),
+})
+
+export const createOrderSchema = z.object({
   customer_name: z.string().trim().min(1, 'Name is required'),
   phone: z.string().trim().min(1, 'Phone number is required'),
-  guests: z.number().int().positive('Party size must be at least 1'),
-  reservation_date: z.string().trim().min(1, 'Date is required'),
-  reservation_time: z.string().trim().min(1, 'Time is required'),
+  items: z.array(orderItemSchema).min(1, 'Select at least one item'),
   notes: z.string().trim().nullable().optional(),
 })
-export type CreateReservationInput = z.infer<typeof createReservationSchema>
+export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
-export const updateReservationStatusSchema = z.object({
-  status: reservationStatusSchema,
+export const updateOrderStatusSchema = z.object({
+  status: orderStatusSchema,
 })
-export type UpdateReservationStatusInput = z.infer<typeof updateReservationStatusSchema>
+export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>
 
 export const createGallerySchema = z.object({
   image_url: z.string().trim().min(1, 'Image URL is required'),
@@ -93,6 +100,7 @@ export const updateSettingsSchema = z.object({
   phone: z.string().trim().min(1).optional(),
   email: z.email().optional(),
   address: z.string().trim().min(1).optional(),
+  delivery_zone: z.string().trim().min(1).optional(),
   opening_hours: z.record(z.string(), z.string()).optional(),
   social_links: socialLinksSchema.optional(),
 })

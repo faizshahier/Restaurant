@@ -7,6 +7,7 @@ let mockSettings: Settings = {
   phone: '+1 (555) 010-0000',
   email: 'hello@example.com',
   address: '123 Main Street, Your City',
+  delivery_zone: 'Within 5 miles of 123 Main Street',
   opening_hours: {
     monday: '11:00 - 22:00',
     tuesday: '11:00 - 22:00',

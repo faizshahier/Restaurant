@@ -44,6 +44,11 @@ export function ContactPage() {
           </div>
 
           <div>
+            <p className="font-medium text-charcoal-50">Delivery Zone</p>
+            <p className="mt-1 text-charcoal-100">{settings?.delivery_zone ?? '—'}</p>
+          </div>
+
+          <div>
             <p className="font-medium text-charcoal-50">Phone</p>
             <a href={`tel:${settings?.phone ?? ''}`} className="mt-1 block text-brand-300 hover:underline">
               {settings?.phone ?? '—'}

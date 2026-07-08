@@ -15,8 +15,8 @@ const HIGHLIGHTS = [
     description: 'A room built for long dinners, good company, and no clock-watching.',
   },
   {
-    title: 'Easy Reservations',
-    description: 'Book a table in under a minute, any day of the week.',
+    title: 'Easy Ordering',
+    description: 'Order online in under a minute, any day of the week.',
   },
 ]
 
@@ -43,7 +43,7 @@ export function HomePage() {
             </h1>
             <p className="max-w-2xl text-base text-charcoal-100 sm:text-lg">
               Seasonal dishes, thoughtful service, and a room built for good company. Explore the menu or
-              reserve a table for your next visit.
+              order online for delivery and pickup.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
@@ -53,10 +53,10 @@ export function HomePage() {
                 View Menu
               </Link>
               <Link
-                to="/reservations"
+                to="/order"
                 className="rounded-md border border-charcoal-700 px-6 py-3 text-sm font-semibold text-charcoal-50 transition-colors hover:border-brand-300 hover:text-brand-300"
               >
-                Reserve a Table
+                Order Now
               </Link>
             </div>
           </div>
@@ -91,16 +91,16 @@ export function HomePage() {
         <Container>
           <div className="flex flex-col items-center gap-4 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
-              <h2 className="font-display text-2xl text-charcoal-50">Ready for dinner?</h2>
+              <h2 className="font-display text-2xl text-charcoal-50">Hungry?</h2>
               <p className="mt-1 text-charcoal-100">
-                Tables fill up fast on weekends — reserve yours in advance.
+                Order online for delivery or pickup, any day of the week.
               </p>
             </div>
             <Link
-              to="/reservations"
+              to="/order"
               className="shrink-0 rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300"
             >
-              Reserve a Table
+              Order Now
             </Link>
           </div>
         </Container>

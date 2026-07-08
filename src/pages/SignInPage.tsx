@@ -52,7 +52,7 @@ export function SignInPage() {
     <Container>
       <div className="mx-auto max-w-sm">
         <h1 className="font-display text-3xl font-semibold text-charcoal-50">Sign In</h1>
-        <p className="mt-2 text-charcoal-100">Welcome back. Sign in to manage your reservations.</p>
+        <p className="mt-2 text-charcoal-100">Welcome back. Sign in to track your orders.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5" noValidate>
           <Field label="Email" error={errors.email}>

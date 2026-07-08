@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { isRestaurantOpenNow } from '../../lib/hours'
 import { SettingsService } from '../../services'
 
 const NAV_LINKS = [
   { to: '/', label: 'Home' },
   { to: '/menu', label: 'Menu' },
-  { to: '/reservations', label: 'Reservations' },
+  { to: '/order', label: 'Order' },
   { to: '/gallery', label: 'Gallery' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
@@ -23,7 +24,7 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
   if (user) {
     return (
       <div className="flex items-center gap-3 text-sm">
-        {user.role === 'Admin' && (
+        {(user.role === 'Admin' || user.role === 'restaurant_manager') && (
           <Link to="/admin" onClick={onNavigate} className="font-medium text-brand-300 hover:underline">
             Admin
           </Link>
@@ -53,12 +54,14 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
 export function Header() {
   const [restaurantName, setRestaurantName] = useState('The Restaurant')
   const [logo, setLogo] = useState('')
+  const [isOpenNow, setIsOpenNow] = useState<boolean | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     SettingsService.getSettings().then((settings) => {
       setRestaurantName(settings.restaurant_name)
       setLogo(settings.logo)
+      setIsOpenNow(isRestaurantOpenNow(settings.opening_hours))
     })
   }, [])
 
@@ -71,6 +74,15 @@ export function Header() {
         >
           {logo && <img src={logo} alt="" className="h-8 w-8 rounded-full object-cover" />}
           {restaurantName}
+          {isOpenNow !== null && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                isOpenNow ? 'bg-green-400/20 text-green-300' : 'bg-charcoal-700 text-charcoal-100'
+              }`}
+            >
+              {isOpenNow ? 'Open Now' : 'Closed'}
+            </span>
+          )}
         </NavLink>
 
         <div className="hidden items-center gap-8 md:flex">

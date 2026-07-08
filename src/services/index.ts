@@ -1,7 +1,7 @@
 export { AuthService } from './AuthService'
 export { FoodService } from './FoodService'
 export { CategoryService } from './CategoryService'
-export { ReservationService } from './ReservationService'
+export { OrderService } from './OrderService'
 export { GalleryService } from './GalleryService'
 export { SettingsService } from './SettingsService'
 export { UserService } from './UserService'

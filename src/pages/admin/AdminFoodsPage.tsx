@@ -10,6 +10,7 @@ const emptyForm: CreateFoodInput = {
   name: '',
   description: '',
   price: 0,
+  discount_percentage: 0,
   image: '',
   category_id: '',
   available: true,
@@ -48,6 +49,7 @@ export function AdminFoodsPage() {
       name: food.name,
       description: food.description,
       price: food.price,
+      discount_percentage: food.discount_percentage,
       image: food.image,
       category_id: food.category_id,
       available: food.available,
@@ -150,6 +152,17 @@ export function AdminFoodsPage() {
           />
         </Field>
 
+        <Field label="Discount %" error={errors.discount_percentage}>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={form.discount_percentage}
+            onChange={(event) => updateField('discount_percentage', Number(event.target.value))}
+            className={inputClasses}
+          />
+        </Field>
+
         <Field label="Image URL" error={errors.image}>
           <input
             type="text"
@@ -209,6 +222,7 @@ export function AdminFoodsPage() {
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Category</th>
                 <th className="px-4 py-3 font-medium">Price</th>
+                <th className="px-4 py-3 font-medium">Discount</th>
                 <th className="px-4 py-3 font-medium">Available</th>
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
@@ -221,6 +235,9 @@ export function AdminFoodsPage() {
                     {categoryNameById.get(food.category_id) ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-charcoal-100">{formatPrice(food.price)}</td>
+                  <td className="px-4 py-3 text-charcoal-100">
+                    {food.discount_percentage > 0 ? `${food.discount_percentage}%` : '—'}
+                  </td>
                   <td className="px-4 py-3">
                     <button
                       type="button"
