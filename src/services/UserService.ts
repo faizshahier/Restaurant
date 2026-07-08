@@ -1,46 +1,38 @@
-import type { AppUser } from '../types'
+import { UserRepository } from '../repositories'
+import { updateUserSchema, type UpdateUserInput } from '../validation/schemas'
+import type { PublicUser, User } from '../types'
 
-const mockUsers: AppUser[] = [
-  {
-    id: 'mock-user-id',
-    email: 'guest@example.com',
-    displayName: 'Guest',
-    role: 'customer',
-    createdAt: new Date().toISOString(),
-  },
-]
+function toPublicUser(user: User): PublicUser {
+  const { password: _password, ...publicUser } = user
+  void _password
+  return publicUser
+}
 
 /**
- * Manages user profile records (separate from auth credentials).
+ * Manages user profile records (separate from authentication credentials).
  *
- * TODO(supabase): Back this service with a `profiles` table.
- * - getUserById   -> supabase.from('profiles').select('*').eq('id', id).single()
- * - listUsers     -> supabase.from('profiles').select('*')
- * - updateProfile -> supabase.from('profiles').update(data).eq('id', id)
- * - deleteUser    -> supabase.from('profiles').delete().eq('id', id)
+ * TODO(supabase): Once Supabase Auth is wired up, keep this service scoped to
+ * the `users` table (profile data) and let AuthService own the session/credential
+ * concerns via supabase.auth.*.
  */
 export class UserService {
-  static async getUserById(id: string): Promise<AppUser | null> {
-    // TODO(supabase): supabase.from('profiles').select('*').eq('id', id).single()
-    return mockUsers.find((user) => user.id === id) ?? null
+  static async getUserById(id: string): Promise<PublicUser | null> {
+    const user = await UserRepository.findById(id)
+    return user ? toPublicUser(user) : null
   }
 
-  static async listUsers(): Promise<AppUser[]> {
-    // TODO(supabase): supabase.from('profiles').select('*')
-    return mockUsers
+  static async listUsers(): Promise<PublicUser[]> {
+    const users = await UserRepository.findAll()
+    return users.map(toPublicUser)
   }
 
-  static async updateProfile(id: string, data: Partial<AppUser>): Promise<AppUser | null> {
-    // TODO(supabase): supabase.from('profiles').update(data).eq('id', id)
-    const index = mockUsers.findIndex((user) => user.id === id)
-    if (index === -1) return null
-    mockUsers[index] = { ...mockUsers[index], ...data }
-    return mockUsers[index]
+  static async updateProfile(id: string, input: UpdateUserInput): Promise<PublicUser | null> {
+    const data = updateUserSchema.parse(input)
+    const user = await UserRepository.update(id, data)
+    return user ? toPublicUser(user) : null
   }
 
   static async deleteUser(id: string): Promise<void> {
-    // TODO(supabase): supabase.from('profiles').delete().eq('id', id)
-    const index = mockUsers.findIndex((user) => user.id === id)
-    if (index !== -1) mockUsers.splice(index, 1)
+    return UserRepository.remove(id)
   }
 }

@@ -1,38 +1,20 @@
-import type { RestaurantSettings } from '../types'
-
-let mockSettings: RestaurantSettings = {
-  id: 'settings-singleton',
-  restaurantName: 'The Restaurant',
-  address: '123 Main Street, Your City',
-  phone: '+1 (555) 010-0000',
-  email: 'hello@example.com',
-  openingHours: {
-    monday: '11:00 - 22:00',
-    tuesday: '11:00 - 22:00',
-    wednesday: '11:00 - 22:00',
-    thursday: '11:00 - 22:00',
-    friday: '11:00 - 23:00',
-    saturday: '10:00 - 23:00',
-    sunday: '10:00 - 21:00',
-  },
-}
+import { SettingsRepository } from '../repositories'
+import { updateSettingsSchema, type UpdateSettingsInput } from '../validation/schemas'
+import type { Settings } from '../types'
 
 /**
- * Manages global restaurant settings (name, contact info, opening hours).
+ * Manages global restaurant settings (name, logo, contact info, hours, socials).
  *
- * TODO(supabase): Back this service with a single-row `settings` table.
- * - getSettings    -> supabase.from('settings').select('*').single()
- * - updateSettings -> supabase.from('settings').update(data).eq('id', id)
+ * TODO(supabase): This service is transport-agnostic; once Supabase is wired up
+ * only SettingsRepository needs to change.
  */
 export class SettingsService {
-  static async getSettings(): Promise<RestaurantSettings> {
-    // TODO(supabase): supabase.from('settings').select('*').single()
-    return mockSettings
+  static async getSettings(): Promise<Settings> {
+    return SettingsRepository.find()
   }
 
-  static async updateSettings(data: Partial<RestaurantSettings>): Promise<RestaurantSettings> {
-    // TODO(supabase): supabase.from('settings').update(data).eq('id', mockSettings.id)
-    mockSettings = { ...mockSettings, ...data }
-    return mockSettings
+  static async updateSettings(input: UpdateSettingsInput): Promise<Settings> {
+    const data = updateSettingsSchema.parse(input)
+    return SettingsRepository.update(data)
   }
 }

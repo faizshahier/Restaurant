@@ -16,16 +16,24 @@ const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
 
 export function Header() {
   const [restaurantName, setRestaurantName] = useState('The Restaurant')
+  const [logo, setLogo] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
-    SettingsService.getSettings().then((settings) => setRestaurantName(settings.restaurantName))
+    SettingsService.getSettings().then((settings) => {
+      setRestaurantName(settings.restaurant_name)
+      setLogo(settings.logo)
+    })
   }, [])
 
   return (
     <header className="sticky top-0 z-50 border-b border-charcoal-700 bg-charcoal-900/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <NavLink to="/" className="font-display text-xl font-semibold tracking-wide text-brand-200">
+        <NavLink
+          to="/"
+          className="flex items-center gap-2 font-display text-xl font-semibold tracking-wide text-brand-200"
+        >
+          {logo && <img src={logo} alt="" className="h-8 w-8 rounded-full object-cover" />}
           {restaurantName}
         </NavLink>
 
