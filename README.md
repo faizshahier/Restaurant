@@ -101,6 +101,9 @@ The layout is built mobile-first with Tailwind breakpoints:
       calls to action, a Featured Dishes section pulling live data from `FoodService` and
       `CategoryService`, a highlights section, a reservation call-to-action banner, and an about
       teaser.
-- [ ] Chapter 3 — TBD (awaiting approval to proceed)
+- [x] **Chapter 3 — Menu Page**: full menu built on `FoodService.getAvailableItems()` and
+      `CategoryService.getAllCategories()`, with category filter pills (All + one per category)
+      and a responsive dish grid reusing the `FoodCard` component from Chapter 2.
+- [ ] Chapter 4 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
