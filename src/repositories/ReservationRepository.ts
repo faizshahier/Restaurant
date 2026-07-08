@@ -1,6 +1,33 @@
 import type { Reservation, ReservationStatus } from '../types'
 
-const mockReservations: Reservation[] = []
+const now = new Date().toISOString()
+
+const mockReservations: Reservation[] = [
+  {
+    id: 'res-sample-pending',
+    customer_name: 'Alex Rivera',
+    phone: '555-201-3344',
+    guests: 2,
+    reservation_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    reservation_time: '18:30',
+    notes: 'Window seat if possible',
+    status: 'Pending',
+    created_at: now,
+    updated_at: now,
+  },
+  {
+    id: 'res-sample-approved',
+    customer_name: 'Priya Nair',
+    phone: '555-467-8899',
+    guests: 5,
+    reservation_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    reservation_time: '19:00',
+    notes: null,
+    status: 'Approved',
+    created_at: now,
+    updated_at: now,
+  },
+]
 
 export interface ReservationFilters {
   reservation_date?: string

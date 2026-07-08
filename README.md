@@ -31,8 +31,10 @@ src/
   components/
     layout/        # Header, Footer, Layout shell, shared page primitives
     form/           # Shared form primitives (Field, inputClasses)
+    auth/           # Route guards (RequireAdmin)
   context/          # React context providers (AuthContext / useAuth)
   pages/            # One component per route
+    admin/           # Admin-only pages, gated by RequireAdmin
   router/           # React Router route definitions
   services/         # Business logic layer (see below)
   repositories/      # Data-access layer, one per table (see below)
@@ -123,6 +125,13 @@ The layout is built mobile-first with Tailwind breakpoints:
       out or the user's name and a `Sign Out` button when logged in (both desktop and mobile nav).
       Extracted the shared `Field`/`inputClasses` form primitives out of the Reservations page into
       `src/components/form/Field.tsx` for reuse across all three forms.
-- [ ] Chapter 8 — TBD (awaiting approval to proceed)
+- [x] **Chapter 8 — Admin Dashboard (Reservations)**: `RequireAdmin` route guard (redirects
+      unauthenticated visitors to sign-in, shows an access-denied message for signed-in non-admins),
+      and an `/admin/reservations` page with status filter pills and Approve/Reject/Cancel actions
+      wired to `ReservationService`. Seeded a demo admin login (`admin@example.com` /
+      `AdminPass123!`, mock data only) and two sample reservations for testing. The Header shows an
+      `Admin` link for `Admin`-role users. Foods/Categories admin management is left for a future
+      chapter.
+- [ ] Chapter 9 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.

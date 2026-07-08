@@ -23,6 +23,15 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
   if (user) {
     return (
       <div className="flex items-center gap-3 text-sm">
+        {user.role === 'Admin' && (
+          <Link
+            to="/admin/reservations"
+            onClick={onNavigate}
+            className="font-medium text-brand-300 hover:underline"
+          >
+            Admin
+          </Link>
+        )}
         <span className="text-charcoal-100">Hi, {user.name.split(' ')[0]}</span>
         <button
           type="button"

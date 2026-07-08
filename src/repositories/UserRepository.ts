@@ -2,12 +2,14 @@ import type { User, UserRole } from '../types'
 
 const now = new Date().toISOString()
 
+// Demo credentials for local testing only: admin@example.com / AdminPass123!
+// Not a real password — never used once Supabase Auth is wired up (see AuthService).
 const mockUsers: User[] = [
   {
     id: 'usr-admin-1',
     name: 'Admin User',
     email: 'admin@example.com',
-    password: 'mock-hash',
+    password: 'AdminPass123!',
     role: 'Admin',
     created_at: now,
     updated_at: now,
