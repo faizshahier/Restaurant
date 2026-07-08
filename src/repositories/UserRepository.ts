@@ -38,7 +38,9 @@ export interface CreateUserRow {
 export class UserRepository {
   static async findAll(): Promise<User[]> {
     // TODO(supabase): supabase.from('users').select('*')
-    return mockUsers
+    // Return a copy — a real query never hands back the same array reference,
+    // and callers rely on that for React state updates to be detected.
+    return [...mockUsers]
   }
 
   static async findById(id: string): Promise<User | null> {

@@ -28,7 +28,9 @@ export interface CreateGalleryRow {
 export class GalleryRepository {
   static async findAll(): Promise<GalleryImage[]> {
     // TODO(supabase): supabase.from('gallery').select('*').order('created_at', { ascending: false })
-    return mockGalleryImages
+    // Return a copy — a real query never hands back the same array reference,
+    // and callers rely on that for React state updates to be detected.
+    return [...mockGalleryImages]
   }
 
   static async findById(id: string): Promise<GalleryImage | null> {

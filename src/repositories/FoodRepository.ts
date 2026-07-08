@@ -61,7 +61,9 @@ export interface CreateFoodRow {
 export class FoodRepository {
   static async findAll(): Promise<Food[]> {
     // TODO(supabase): supabase.from('foods').select('*')
-    return mockFoods
+    // Return a copy — a real query never hands back the same array reference,
+    // and callers rely on that for React state updates to be detected.
+    return [...mockFoods]
   }
 
   static async findById(id: string): Promise<Food | null> {

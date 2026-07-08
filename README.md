@@ -132,6 +132,22 @@ The layout is built mobile-first with Tailwind breakpoints:
       `AdminPass123!`, mock data only) and two sample reservations for testing. The Header shows an
       `Admin` link for `Admin`-role users. Foods/Categories admin management is left for a future
       chapter.
-- [ ] Chapter 9 — TBD (awaiting approval to proceed)
+- [x] **Chapter 9 — Admin Dashboard (Foods & Categories)**: added `/admin/foods` (create/edit form,
+      availability toggle, delete, all wired to `FoodService`/`CategoryService`) and
+      `/admin/categories` (create/edit/delete, with a guard that blocks deleting a category still
+      used by a food item). Introduced `AdminLayout` with a shared tab nav (Reservations / Foods /
+      Categories) now that there are three admin pages, and nested all `/admin/*` routes under a
+      single `RequireAdmin` instead of gating each page individually.
+
+  **Bug fix while building this chapter:** `CategoryRepository.findAll`, `FoodRepository.findAll`,
+  `GalleryRepository.findAll`, and `UserRepository.findAll` returned the same in-memory array
+  reference on every call. Since React's `useState` setter bails out of re-rendering when given a
+  value that's referentially identical (`Object.is`) to the current state, refreshing a list after
+  an update/create/delete silently failed to re-render even though the underlying data had changed
+  — first caught as the Foods availability toggle not visibly updating. Fixed by returning a shallow
+  copy (`[...mockX]`) from each `findAll`, matching how a real Supabase query always returns a fresh
+  array. `ReservationRepository.findAll` was unaffected since it already used `.filter()`.
+
+- [ ] Chapter 10 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.

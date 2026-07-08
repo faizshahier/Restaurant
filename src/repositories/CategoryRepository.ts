@@ -26,7 +26,9 @@ export interface CreateCategoryRow {
 export class CategoryRepository {
   static async findAll(): Promise<Category[]> {
     // TODO(supabase): supabase.from('categories').select('*').order('name')
-    return mockCategories
+    // Return a copy — a real query never hands back the same array reference,
+    // and callers rely on that for React state updates to be detected.
+    return [...mockCategories]
   }
 
   static async findById(id: string): Promise<Category | null> {

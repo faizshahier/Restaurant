@@ -24,11 +24,7 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
     return (
       <div className="flex items-center gap-3 text-sm">
         {user.role === 'Admin' && (
-          <Link
-            to="/admin/reservations"
-            onClick={onNavigate}
-            className="font-medium text-brand-300 hover:underline"
-          >
+          <Link to="/admin" onClick={onNavigate} className="font-medium text-brand-300 hover:underline">
             Admin
           </Link>
         )}
