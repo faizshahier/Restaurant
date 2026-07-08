@@ -108,6 +108,9 @@ The layout is built mobile-first with Tailwind breakpoints:
       validated client-side with the shared `createReservationSchema` Zod schema, submitted via
       `ReservationService.createReservation()`, with inline field errors and a confirmation screen
       showing the reservation's `Pending` status.
-- [ ] Chapter 5 — TBD (awaiting approval to proceed)
+- [x] **Chapter 5 — Gallery Page**: responsive photo grid (2/3/4 columns across mobile, tablet,
+      desktop) pulling from `GalleryService.getAllImages()`, with seeded sample gallery mock data
+      and a placeholder tile for entries without a photo yet.
+- [ ] Chapter 6 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.

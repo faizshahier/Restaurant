@@ -1,6 +1,13 @@
 import type { GalleryImage } from '../types'
 
-const mockGalleryImages: GalleryImage[] = []
+const now = new Date().toISOString()
+
+const mockGalleryImages: GalleryImage[] = [
+  { id: 'img-dining-room', image_url: '', title: 'The Dining Room', created_at: now, updated_at: now },
+  { id: 'img-open-kitchen', image_url: '', title: 'Our Open Kitchen', created_at: now, updated_at: now },
+  { id: 'img-patio', image_url: '', title: 'Evenings on the Patio', created_at: now, updated_at: now },
+  { id: 'img-plated-dish', image_url: '', title: 'A Freshly Plated Dish', created_at: now, updated_at: now },
+]
 
 export interface CreateGalleryRow {
   image_url: string
