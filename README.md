@@ -104,6 +104,10 @@ The layout is built mobile-first with Tailwind breakpoints:
 - [x] **Chapter 3 — Menu Page**: full menu built on `FoodService.getAvailableItems()` and
       `CategoryService.getAllCategories()`, with category filter pills (All + one per category)
       and a responsive dish grid reusing the `FoodCard` component from Chapter 2.
-- [ ] Chapter 4 — TBD (awaiting approval to proceed)
+- [x] **Chapter 4 — Reservations Page**: booking form (name, phone, guests, date, time, notes)
+      validated client-side with the shared `createReservationSchema` Zod schema, submitted via
+      `ReservationService.createReservation()`, with inline field errors and a confirmation screen
+      showing the reservation's `Pending` status.
+- [ ] Chapter 5 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
