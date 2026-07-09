@@ -21,10 +21,13 @@ end;
 $$;
 
 -- =========================================================================
--- profiles — extends auth.users (1:1). No password column: Supabase Auth
--- owns credentials in auth.users, which PostgREST/the client never expose.
+-- users — app-level profile data, linked 1:1 to Supabase's own auth.users.
+-- No password column here: Supabase Auth owns credentials in auth.users,
+-- which PostgREST/the client never expose. Role is a single column
+-- (Admin | Customer | restaurant_manager), not a separate admins table —
+-- see the chat explanation for why that's the right call for this app.
 -- =========================================================================
-create table if not exists public.profiles (
+create table if not exists public.users (
   id uuid primary key references auth.users (id) on delete cascade,
   name text not null,
   email text not null unique,
@@ -35,12 +38,12 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
-drop trigger if exists set_updated_at on public.profiles;
+drop trigger if exists set_updated_at on public.users;
 create trigger set_updated_at
-  before update on public.profiles
+  before update on public.users
   for each row execute function public.set_updated_at();
 
--- Auto-create a profile row whenever someone signs up via Supabase Auth.
+-- Auto-create a users row whenever someone signs up via Supabase Auth.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -48,7 +51,7 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, name, email, role)
+  insert into public.users (id, name, email, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1)),
@@ -128,7 +131,7 @@ create index if not exists foods_category_id_idx on public.foods (category_id);
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   -- Nullable: guest checkout is supported (no sign-in required to order).
-  user_id uuid references public.profiles (id) on delete set null,
+  user_id uuid references public.users (id) on delete set null,
   customer_name text not null,
   phone text not null,
   total numeric(10, 2) not null default 0 check (total >= 0),
@@ -223,7 +226,7 @@ set search_path = public
 stable
 as $$
   select exists (
-    select 1 from public.profiles where id = auth.uid() and role = 'Admin'
+    select 1 from public.users where id = auth.uid() and role = 'Admin'
   );
 $$;
 
@@ -235,48 +238,48 @@ set search_path = public
 stable
 as $$
   select exists (
-    select 1 from public.profiles
+    select 1 from public.users
     where id = auth.uid() and role in ('Admin', 'restaurant_manager')
   );
 $$;
 
-drop trigger if exists prevent_role_self_escalation on public.profiles;
+drop trigger if exists prevent_role_self_escalation on public.users;
 create trigger prevent_role_self_escalation
-  before update on public.profiles
+  before update on public.users
   for each row execute function public.prevent_role_self_escalation();
 
 -- =========================================================================
 -- Row Level Security
 -- =========================================================================
 
--- --- profiles --------------------------------------------------------
-alter table public.profiles enable row level security;
+-- --- users --------------------------------------------------------
+alter table public.users enable row level security;
 
-drop policy if exists "Users can view own profile" on public.profiles;
-create policy "Users can view own profile"
-  on public.profiles for select
+drop policy if exists "Users can view own account" on public.users;
+create policy "Users can view own account"
+  on public.users for select
   using (auth.uid() = id);
 
-drop policy if exists "Admins can view all profiles" on public.profiles;
-create policy "Admins can view all profiles"
-  on public.profiles for select
+drop policy if exists "Admins can view all users" on public.users;
+create policy "Admins can view all users"
+  on public.users for select
   using (public.is_admin());
 
-drop policy if exists "Users can update own profile" on public.profiles;
-create policy "Users can update own profile"
-  on public.profiles for update
+drop policy if exists "Users can update own account" on public.users;
+create policy "Users can update own account"
+  on public.users for update
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
-drop policy if exists "Admins can update any profile" on public.profiles;
-create policy "Admins can update any profile"
-  on public.profiles for update
+drop policy if exists "Admins can update any user" on public.users;
+create policy "Admins can update any user"
+  on public.users for update
   using (public.is_admin())
   with check (public.is_admin());
 
-drop policy if exists "Admins can delete profiles" on public.profiles;
-create policy "Admins can delete profiles"
-  on public.profiles for delete
+drop policy if exists "Admins can delete users" on public.users;
+create policy "Admins can delete users"
+  on public.users for delete
   using (public.is_admin());
 
 -- No INSERT policy: rows are created exclusively by the handle_new_user()
@@ -465,8 +468,8 @@ commit;
 -- =========================================================================
 -- Sign up through the app (or Supabase Studio → Authentication) first —
 -- that creates the auth.users row and, via the trigger above, a matching
--- `profiles` row with role 'Customer'. Then run:
+-- public.users row with role 'Customer'. Then run:
 --
---   update public.profiles set role = 'Admin' where email = 'you@example.com';
---   update public.profiles set role = 'restaurant_manager', phone_number = '555-0100'
+--   update public.users set role = 'Admin' where email = 'you@example.com';
+--   update public.users set role = 'restaurant_manager', phone_number = '555-0100'
 --     where email = 'manager@example.com';

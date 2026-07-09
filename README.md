@@ -37,7 +37,7 @@ it. To provision the real backend:
    sample menu/gallery data.
 4. Sign up through the app (or Supabase Studio → Authentication), then promote that account:
    ```sql
-   update public.profiles set role = 'Admin' where email = 'you@example.com';
+   update public.users set role = 'Admin' where email = 'you@example.com';
    ```
 5. `src/lib/supabaseClient.ts` picks up the env vars automatically and exports a ready `supabase`
    client — but no repository queries it yet. Wiring each repository's `TODO(supabase)` comments to
@@ -250,9 +250,14 @@ The layout is built mobile-first with Tailwind breakpoints:
       than crashing). Added `.env.example` / `.gitignore` coverage for real credentials, and
       `supabase/schema.sql` — a complete, idempotent, copy-paste-ready script covering every table,
       foreign key, RLS policy, and trigger described in "Database Schema" above, including a
-      `profiles` table linked 1:1 to `auth.users` (auto-created via trigger on sign-up, no password
+      `users` table linked 1:1 to `auth.users` (auto-created via trigger on sign-up, no password
       column), and a role-escalation guard so a non-admin can't grant themselves a higher role.
       Repositories are not yet wired to query it — that's the next step, one repository at a time.
+- [x] **Schema correction — `profiles` → `users`**: re-analyzed the repository/service layer against
+      the SQL and found every `TODO(supabase)` comment already says `supabase.from('users')`, never
+      `profiles` — the app's own code had already settled on that name. Renamed the table (and every
+      FK, RLS policy, and helper function referencing it) to match, rather than impose the generic
+      Supabase-convention name over the project's existing naming.
 - [ ] Chapter 11 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
