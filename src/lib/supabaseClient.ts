@@ -1,16 +1,17 @@
-// TODO(supabase): Provision a Supabase project and wire it up here.
-//
-// 1. Install the client library:      npm install @supabase/supabase-js
-// 2. Add environment variables to a local .env file (gitignored):
-//      VITE_SUPABASE_URL=<your-project-url>
-//      VITE_SUPABASE_ANON_KEY=<your-anon-key>
-// 3. Uncomment the block below and remove the `null` placeholder export.
-//
-// import { createClient } from '@supabase/supabase-js'
-//
-// const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-// const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-//
-// export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-export const supabase = null
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    'Supabase env vars are missing. Copy .env.example to .env and fill in VITE_SUPABASE_URL / ' +
+      'VITE_SUPABASE_ANON_KEY (see supabase/schema.sql for the database setup). Until then, ' +
+      'repositories keep using their in-memory mock data.',
+  )
+}
+
+// Repositories don't consume this client yet — that migration happens repository-by-repository,
+// each replacing its TODO(supabase) comments with real supabase.from(...) calls.
+export const supabase: SupabaseClient | null =
+  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null

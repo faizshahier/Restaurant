@@ -11,7 +11,8 @@ Supabase integration.
 - **Tailwind CSS 4** — utility-first styling, responsive by design
 - **Zod** — runtime validation at the service boundary
 - **ESLint** + **Prettier** — linting and formatting
-- Repository + service layers designed for a future **Supabase** backend (auth, database, storage)
+- **@supabase/supabase-js** — installed and configured (`src/lib/supabaseClient.ts`); repositories
+  aren't wired to it yet — see "Supabase Setup" below
 
 ## Getting Started
 
@@ -23,6 +24,24 @@ npm run preview   # preview the production build locally
 npm run lint      # run ESLint
 npm run format    # format the codebase with Prettier
 ```
+
+## Supabase Setup
+
+The app currently runs entirely on in-memory mock data — no Supabase project is required to develop
+it. To provision the real backend:
+
+1. Create a project at [supabase.com](https://supabase.com) (or use an existing one).
+2. Copy `.env.example` to `.env` and fill in your project's URL and anon key (Project Settings → API).
+3. Open the Supabase SQL Editor and run [`supabase/schema.sql`](supabase/schema.sql) — one paste,
+   creates every table, RLS policy, trigger, and index, plus a required `settings` row and optional
+   sample menu/gallery data.
+4. Sign up through the app (or Supabase Studio → Authentication), then promote that account:
+   ```sql
+   update public.profiles set role = 'Admin' where email = 'you@example.com';
+   ```
+5. `src/lib/supabaseClient.ts` picks up the env vars automatically and exports a ready `supabase`
+   client — but no repository queries it yet. Wiring each repository's `TODO(supabase)` comments to
+   real `supabase.from(...)` calls is the next step, one repository at a time.
 
 ## Project Structure
 
@@ -226,6 +245,14 @@ The layout is built mobile-first with Tailwind breakpoints:
       added a `secondary-*` (herb green) brand scale, and introduced named `status-*`/availability
       tokens (see "Design System: Color Tokens" above) so order-status and availability badges no
       longer hardcode raw Tailwind palette colors (`yellow-400`, `green-300`, etc.).
+- [x] **Supabase Project Setup**: installed `@supabase/supabase-js` and implemented
+      `src/lib/supabaseClient.ts` (warns and falls back to mock data if env vars are missing, rather
+      than crashing). Added `.env.example` / `.gitignore` coverage for real credentials, and
+      `supabase/schema.sql` — a complete, idempotent, copy-paste-ready script covering every table,
+      foreign key, RLS policy, and trigger described in "Database Schema" above, including a
+      `profiles` table linked 1:1 to `auth.users` (auto-created via trigger on sign-up, no password
+      column), and a role-escalation guard so a non-admin can't grant themselves a higher role.
+      Repositories are not yet wired to query it — that's the next step, one repository at a time.
 - [ ] Chapter 11 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
