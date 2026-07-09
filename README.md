@@ -11,8 +11,8 @@ Supabase integration.
 - **Tailwind CSS 4** — utility-first styling, responsive by design
 - **Zod** — runtime validation at the service boundary
 - **ESLint** + **Prettier** — linting and formatting
-- **@supabase/supabase-js** — installed and configured (`src/lib/supabaseClient.ts`); repositories
-  aren't wired to it yet — see "Supabase Setup" below
+- **@supabase/supabase-js** — the app's only backend. Auth, every repository, and file storage all
+  query it directly; there is no mock-data fallback — see "Supabase Setup" below
 
 ## Getting Started
 
@@ -27,21 +27,22 @@ npm run format    # format the codebase with Prettier
 
 ## Supabase Setup
 
-The app currently runs entirely on in-memory mock data — no Supabase project is required to develop
-it. To provision the real backend:
+**A Supabase project is required** — there is no mock-data fallback. `src/lib/supabaseClient.ts`
+throws immediately on startup if the env vars below aren't set, rather than degrading silently.
 
 1. Create a project at [supabase.com](https://supabase.com) (or use an existing one).
 2. Copy `.env.example` to `.env` and fill in your project's URL and anon key (Project Settings → API).
 3. Open the Supabase SQL Editor and run [`supabase/schema.sql`](supabase/schema.sql) — one paste,
-   creates every table, RLS policy, trigger, and index, plus a required `settings` row and optional
-   sample menu/gallery data.
+   creates every table, RLS policy, trigger, function, and storage bucket, plus a required `settings`
+   row and optional sample menu/gallery data. It's idempotent, so re-run it any time the file changes
+   (e.g. after pulling an update that added a new function or policy) — safe to run repeatedly.
 4. Sign up through the app (or Supabase Studio → Authentication), then promote that account:
    ```sql
    update public.users set role = 'Admin' where email = 'you@example.com';
    ```
-5. `src/lib/supabaseClient.ts` picks up the env vars automatically and exports a ready `supabase`
-   client — but no repository queries it yet. Wiring each repository's `TODO(supabase)` comments to
-   real `supabase.from(...)` calls is the next step, one repository at a time.
+5. By default, Supabase projects require email confirmation before a session exists. For local
+   development, either confirm via the email Supabase sends, or turn it off under Authentication →
+   Providers → Email → "Confirm email" in the dashboard.
 
 ## Project Structure
 
@@ -67,20 +68,21 @@ src/
 The app is modeled around a Supabase-ready Postgres schema. Types in `src/types/database.ts` mirror
 the tables 1:1 (snake_case columns included) so no mapping layer is needed once Supabase is wired up.
 
-| Table        | Columns                                                                                                                                                          |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `users`      | `id, name, email, phone_number, password, role (Admin \| Customer \| restaurant_manager), created_at, updated_at`                                                |
-| `categories` | `id, name, created_at, updated_at`                                                                                                                               |
-| `foods`      | `id, name, description, price, discount_percentage, image, category_id, available, created_at, updated_at`                                                       |
-| `orders`     | `id, customer_name, phone, items (food_id, food_name, quantity, price)[], total, notes, status (Pending\|Preparing\|Shipped\|Cancelled), created_at, updated_at` |
-| `gallery`    | `id, image_url, title, created_at, updated_at`                                                                                                                   |
-| `settings`   | `restaurant_name, logo, phone, email, address, delivery_zone, opening_hours, social_links` (single row)                                                          |
+| Table         | Columns                                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `users`       | `id, name, email, phone_number, role (Admin \| Customer \| restaurant_manager), created_at, updated_at`                    |
+| `categories`  | `id, name, created_at, updated_at`                                                                                         |
+| `foods`       | `id, name, description, price, discount_percentage, image, category_id, available, created_at, updated_at`                 |
+| `orders`      | `id, user_id, customer_name, phone, total, notes, status (Pending\|Preparing\|Shipped\|Cancelled), created_at, updated_at` |
+| `order_items` | `id, order_id, food_id, food_name, quantity, price, created_at`                                                            |
+| `gallery`     | `id, image_url, title, created_at, updated_at`                                                                             |
+| `settings`    | `restaurant_name, logo, phone, email, address, delivery_zone, opening_hours, social_links` (single row)                    |
 
-> `users.password` is part of the schema as given, but once Supabase Auth is wired up, credentials
-> move to `supabase.auth.*` and this table becomes profile data only — see the `TODO(supabase)`
-> comments in `AuthService` and `UserRepository`. `orders.items` is modeled as a JSON column for
-> simplicity; a normalized schema would use a separate `order_items` table with foreign keys to
-> `orders` and `foods`.
+> `users` has no `password` column — Supabase Auth owns credentials entirely in `auth.users`
+> (which the client never queries directly); `public.users` is profile data, kept in sync via the
+> `handle_new_user()` trigger. `orders`/`order_items` are properly normalized (not a JSON column) —
+> `OrderRepository.create()` calls the `create_order_with_items` Postgres function (in
+> `supabase/schema.sql`) so both inserts commit as one atomic transaction.
 
 ### Restaurant manager role & single-tenant scope
 
@@ -95,17 +97,18 @@ becomes meaningful rather than dead code.
 
 ## Architecture: Repositories + Services + Validation
 
-Data flows through three layers, each replaceable independently:
+Data flows through three layers:
 
-1. **Repositories** (`src/repositories/`) — one per table, holding the in-memory mock data today.
-   Every method carries a `TODO(supabase)` comment with the exact Supabase call that replaces it
-   (e.g. `supabase.from('foods').select('*')`).
-2. **Validation** (`src/validation/schemas.ts`) — Zod schemas that validate data before it's written
-   through a repository, mirroring the constraints a real Postgres schema/RLS policy would enforce.
+1. **Repositories** (`src/repositories/`) — one per table, each querying Supabase directly
+   (`supabase.from('foods').select('*')`, etc.) via the client in `src/lib/supabaseClient.ts`.
+   `UserRepository` has no `create()` — new rows there come exclusively from the
+   `handle_new_user()` auth trigger, never a direct insert.
+2. **Validation** (`src/validation/schemas.ts`) — Zod schemas that validate data before a repository
+   writes it, mirroring the constraints RLS/Postgres additionally enforce server-side.
 3. **Services** (`src/services/`) — the public API the UI calls. They validate input, delegate to a
    repository, and add business logic (e.g. `FoodService.getAvailableItems()` filters by
-   `available`). Nothing outside `src/services/` and `src/repositories/` should change when Supabase
-   is finally connected.
+   `available`; `OrderService.createOrder()` computes `total` server-side, never trusting a
+   client-supplied value).
 
 | Service           | Repository           | Responsibility                                                                                          |
 | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -258,6 +261,29 @@ The layout is built mobile-first with Tailwind breakpoints:
       `profiles` — the app's own code had already settled on that name. Renamed the table (and every
       FK, RLS policy, and helper function referencing it) to match, rather than impose the generic
       Supabase-convention name over the project's existing naming.
+- [x] **Full Supabase wiring**: every repository, `AuthService`, and `StorageService` now query the
+      real Supabase project — no mock-data fallback remains anywhere. Specifically:
+  - `AuthService` uses real `supabase.auth.signUp/signInWithPassword/signOut/getUser`;
+    `AuthContext` subscribes to `onAuthStateChange` instead of polling once on load.
+  - `UserRepository`'s `create()` was removed (not stubbed) — `public.users` has no INSERT policy
+    for any client role by design, since rows are only ever created by the `handle_new_user()`
+    trigger. `User`/`PublicUser` lost the mock-only `password` field to match.
+  - `CategoryRepository`, `FoodRepository`, `GalleryRepository`, `SettingsRepository` are thin
+    `supabase.from(table)` wrappers.
+  - `OrderRepository.create()` calls a new `create_order_with_items` Postgres function (added to
+    `schema.sql`) instead of two sequential `insert` calls, so the order and its line items commit
+    atomically — a mid-request failure can no longer leave an order with no items.
+  - `StorageService` uses real `supabase.storage`; `schema.sql` now also creates the `menu-photos`
+    and `gallery-images` buckets with public-read/staff-write policies. No page has a file-upload
+    UI yet, so this is wired but unused.
+  - **The demo admin/manager credentials from Chapters 8 and 10 no longer work** — they were only
+    ever rows in the old mock `UserRepository`, never real Supabase Auth accounts. Sign up through
+    the app and promote via SQL instead (see "Supabase Setup" above).
+  - **Verified live** against the real project: Home/Menu/Gallery/Contact render real seeded data
+    (including the `discount_percentage` badge on Margherita Pizza); sign-up round-trips to real
+    Supabase Auth (correctly blocked by email confirmation, a project setting, not a bug). Order
+    placement is wired but fails until `schema.sql` is re-run in the SQL Editor to pick up the new
+    `create_order_with_items` function — the script is idempotent, so re-running it is safe.
 - [ ] Chapter 11 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.

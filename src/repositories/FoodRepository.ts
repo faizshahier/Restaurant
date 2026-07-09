@@ -1,45 +1,5 @@
+import { supabase } from '../lib/supabaseClient'
 import type { Food } from '../types'
-
-const now = new Date().toISOString()
-
-const mockFoods: Food[] = [
-  {
-    id: 'food-bruschetta',
-    name: 'Bruschetta',
-    description: 'Grilled bread rubbed with garlic and topped with olive oil, salt, and tomato.',
-    price: 8.5,
-    discount_percentage: 0,
-    image: '',
-    category_id: 'cat-starters',
-    available: true,
-    created_at: now,
-    updated_at: now,
-  },
-  {
-    id: 'food-margherita',
-    name: 'Margherita Pizza',
-    description: 'San Marzano tomatoes, fresh mozzarella, basil, extra virgin olive oil.',
-    price: 15,
-    discount_percentage: 10,
-    image: '',
-    category_id: 'cat-mains',
-    available: true,
-    created_at: now,
-    updated_at: now,
-  },
-  {
-    id: 'food-tiramisu',
-    name: 'Tiramisu',
-    description: 'Espresso-soaked ladyfingers layered with mascarpone cream.',
-    price: 7,
-    discount_percentage: 0,
-    image: '',
-    category_id: 'cat-desserts',
-    available: true,
-    created_at: now,
-    updated_at: now,
-  },
-]
 
 export interface CreateFoodRow {
   name: string
@@ -51,59 +11,49 @@ export interface CreateFoodRow {
   available: boolean
 }
 
-/**
- * Data-access layer for the `foods` table.
- *
- * TODO(supabase): Replace the in-memory array with real queries.
- * - findAll        -> supabase.from('foods').select('*')
- * - findById       -> supabase.from('foods').select('*').eq('id', id).single()
- * - findByCategory -> supabase.from('foods').select('*').eq('category_id', categoryId)
- * - create         -> supabase.from('foods').insert(data).select().single()
- * - update         -> supabase.from('foods').update(data).eq('id', id).select().single()
- * - remove         -> supabase.from('foods').delete().eq('id', id)
- */
+/** Data-access layer for the `foods` table. */
 export class FoodRepository {
   static async findAll(): Promise<Food[]> {
-    // TODO(supabase): supabase.from('foods').select('*')
-    // Return a copy — a real query never hands back the same array reference,
-    // and callers rely on that for React state updates to be detected.
-    return [...mockFoods]
+    const { data, error } = await supabase.from('foods').select('*').order('name')
+    if (error) throw error
+    return data
   }
 
   static async findById(id: string): Promise<Food | null> {
-    // TODO(supabase): supabase.from('foods').select('*').eq('id', id).single()
-    return mockFoods.find((food) => food.id === id) ?? null
+    const { data, error } = await supabase.from('foods').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data
   }
 
   static async findByCategory(categoryId: string): Promise<Food[]> {
-    // TODO(supabase): supabase.from('foods').select('*').eq('category_id', categoryId)
-    return mockFoods.filter((food) => food.category_id === categoryId)
+    const { data, error } = await supabase
+      .from('foods')
+      .select('*')
+      .eq('category_id', categoryId)
+      .order('name')
+    if (error) throw error
+    return data
   }
 
   static async create(data: CreateFoodRow): Promise<Food> {
-    // TODO(supabase): supabase.from('foods').insert(data).select().single()
-    const timestamp = new Date().toISOString()
-    const food: Food = {
-      id: `food-${crypto.randomUUID()}`,
-      created_at: timestamp,
-      updated_at: timestamp,
-      ...data,
-    }
-    mockFoods.push(food)
-    return food
+    const { data: created, error } = await supabase.from('foods').insert(data).select().single()
+    if (error) throw error
+    return created
   }
 
   static async update(id: string, data: Partial<CreateFoodRow>): Promise<Food | null> {
-    // TODO(supabase): supabase.from('foods').update(data).eq('id', id).select().single()
-    const index = mockFoods.findIndex((food) => food.id === id)
-    if (index === -1) return null
-    mockFoods[index] = { ...mockFoods[index], ...data, updated_at: new Date().toISOString() }
-    return mockFoods[index]
+    const { data: updated, error } = await supabase
+      .from('foods')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return updated
   }
 
   static async remove(id: string): Promise<void> {
-    // TODO(supabase): supabase.from('foods').delete().eq('id', id)
-    const index = mockFoods.findIndex((food) => food.id === id)
-    if (index !== -1) mockFoods.splice(index, 1)
+    const { error } = await supabase.from('foods').delete().eq('id', id)
+    if (error) throw error
   }
 }

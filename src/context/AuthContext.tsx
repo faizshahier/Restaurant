@@ -17,10 +17,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    AuthService.getCurrentUser().then((currentUser) => {
+    // Subscribed (not a one-time getCurrentUser poll) so the app reacts to session
+    // refresh, expiry, and sign-out from another tab, not just the initial load.
+    const unsubscribe = AuthService.onAuthStateChange((currentUser) => {
       setUser(currentUser)
       setIsLoading(false)
     })
+    return unsubscribe
   }, [])
 
   async function signIn(email: string, password: string) {

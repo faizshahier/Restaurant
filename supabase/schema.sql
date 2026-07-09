@@ -172,6 +172,47 @@ create table if not exists public.order_items (
 create index if not exists order_items_order_id_idx on public.order_items (order_id);
 create index if not exists order_items_food_id_idx on public.order_items (food_id);
 
+-- Creates an order and its line items in one atomic transaction (a function call is
+-- one statement from Postgres's point of view, so if the order_items insert fails —
+-- e.g. bad food_id — the orders insert above it rolls back too). SECURITY INVOKER
+-- (the default, spelled out for clarity) means it runs as the calling role, so the
+-- orders/order_items RLS policies below still apply inside it — a signed-in caller
+-- still can't place an order under someone else's user_id.
+create or replace function public.create_order_with_items(
+  p_customer_name text,
+  p_phone text,
+  p_total numeric,
+  p_notes text,
+  p_user_id uuid,
+  p_items jsonb
+)
+returns public.orders
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_order public.orders;
+begin
+  insert into public.orders (customer_name, phone, total, notes, user_id)
+  values (p_customer_name, p_phone, p_total, p_notes, p_user_id)
+  returning * into v_order;
+
+  insert into public.order_items (order_id, food_id, food_name, quantity, price)
+  select
+    v_order.id,
+    (item ->> 'food_id')::uuid,
+    item ->> 'food_name',
+    (item ->> 'quantity')::integer,
+    (item ->> 'price')::numeric
+  from jsonb_array_elements(p_items) as item;
+
+  return v_order;
+end;
+$$;
+
+grant execute on function public.create_order_with_items to anon, authenticated;
+
 -- =========================================================================
 -- gallery
 -- =========================================================================
@@ -408,6 +449,41 @@ create policy "Admins can manage settings"
   on public.settings for all
   using (public.is_admin())
   with check (public.is_admin());
+
+-- =========================================================================
+-- Storage — buckets for menu photos and gallery images (public read via their
+-- CDN URL regardless of RLS; storage.objects RLS below governs list/upload/
+-- update/delete, which do go through the API). storage.objects ships with RLS
+-- already enabled on every Supabase project, so it isn't re-enabled here.
+-- =========================================================================
+insert into storage.buckets (id, name, public)
+values ('menu-photos', 'menu-photos', true)
+on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public)
+values ('gallery-images', 'gallery-images', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Public can view media" on storage.objects;
+create policy "Public can view media"
+  on storage.objects for select
+  using (bucket_id in ('menu-photos', 'gallery-images'));
+
+drop policy if exists "Staff can upload media" on storage.objects;
+create policy "Staff can upload media"
+  on storage.objects for insert
+  with check (bucket_id in ('menu-photos', 'gallery-images') and public.is_staff());
+
+drop policy if exists "Staff can update media" on storage.objects;
+create policy "Staff can update media"
+  on storage.objects for update
+  using (bucket_id in ('menu-photos', 'gallery-images') and public.is_staff())
+  with check (bucket_id in ('menu-photos', 'gallery-images') and public.is_staff());
+
+drop policy if exists "Staff can delete media" on storage.objects;
+create policy "Staff can delete media"
+  on storage.objects for delete
+  using (bucket_id in ('menu-photos', 'gallery-images') and public.is_staff());
 
 -- =========================================================================
 -- Seed data

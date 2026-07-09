@@ -6,21 +6,20 @@ import { z } from 'zod'
 
 export const userRoleSchema = z.enum(['Admin', 'Customer', 'restaurant_manager'])
 
-export const createUserSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required'),
-  email: z.email('Enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: userRoleSchema.default('Customer'),
+// Admin-facing profile update (via UserService). There's no createUserSchema: new
+// `users` rows are provisioned exclusively by the handle_new_user() trigger on
+// auth.users, never by a direct client-side insert (see UserRepository).
+export const updateUserSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').optional(),
+  email: z.email('Enter a valid email address').optional(),
+  role: userRoleSchema.optional(),
   phone_number: z.string().trim().min(1).nullable().optional(),
 })
-export type CreateUserInput = z.infer<typeof createUserSchema>
-
-export const updateUserSchema = createUserSchema.partial()
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
 
-// Public-facing auth schemas. Kept separate from createUserSchema/updateUserSchema
-// (which are for admin user-management via UserService) since self-registration
-// should never let a caller set their own `role`.
+// Public-facing auth schemas. Kept separate from updateUserSchema (which is for
+// admin user-management via UserService) since self-registration should never
+// let a caller set their own `role`.
 export const signUpSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   email: z.email('Enter a valid email address'),

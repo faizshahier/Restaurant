@@ -1,35 +1,25 @@
 import { UserRepository } from '../repositories'
 import { updateUserSchema, type UpdateUserInput } from '../validation/schemas'
-import type { PublicUser, User } from '../types'
-
-function toPublicUser(user: User): PublicUser {
-  const { password: _password, ...publicUser } = user
-  void _password
-  return publicUser
-}
+import type { PublicUser } from '../types'
 
 /**
  * Manages user profile records (separate from authentication credentials).
  *
- * TODO(supabase): Once Supabase Auth is wired up, keep this service scoped to
- * the `users` table (profile data) and let AuthService own the session/credential
- * concerns via supabase.auth.*.
+ * Scoped to the `users` table (profile data) — AuthService owns the
+ * session/credential concerns via supabase.auth.*.
  */
 export class UserService {
   static async getUserById(id: string): Promise<PublicUser | null> {
-    const user = await UserRepository.findById(id)
-    return user ? toPublicUser(user) : null
+    return UserRepository.findById(id)
   }
 
   static async listUsers(): Promise<PublicUser[]> {
-    const users = await UserRepository.findAll()
-    return users.map(toPublicUser)
+    return UserRepository.findAll()
   }
 
   static async updateProfile(id: string, input: UpdateUserInput): Promise<PublicUser | null> {
     const data = updateUserSchema.parse(input)
-    const user = await UserRepository.update(id, data)
-    return user ? toPublicUser(user) : null
+    return UserRepository.update(id, data)
   }
 
   static async deleteUser(id: string): Promise<void> {

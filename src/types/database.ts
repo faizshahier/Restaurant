@@ -11,17 +11,17 @@ export interface User {
   email: string
   // Only meaningful for restaurant_manager accounts; null for Admin/Customer.
   phone_number: string | null
-  // TODO(supabase): Supabase Auth owns credentials once wired up (see src/lib/supabaseClient.ts).
-  // This field mirrors the schema's `password` column but must never hold a real plaintext
-  // password outside of local mock data.
-  password: string
   role: UserRole
   created_at: string
   updated_at: string
 }
 
-/** User shape safe to expose to the UI/API layer (never includes the password). */
-export type PublicUser = Omit<User, 'password'>
+// Historically this was `Omit<User, 'password'>` back when User carried a mock password
+// field. Supabase Auth now owns credentials entirely in auth.users (see
+// src/lib/supabaseClient.ts) — public.users never has a password column — so there's
+// nothing left to omit. Kept as its own type so call sites that only ever want the
+// safe-to-display shape don't need to change if that ever differs from User again.
+export type PublicUser = User
 
 export interface Category {
   id: string

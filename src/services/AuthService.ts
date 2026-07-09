@@ -1,67 +1,71 @@
+import { supabase } from '../lib/supabaseClient'
 import { UserRepository } from '../repositories'
-import { createUserSchema } from '../validation/schemas'
-import type { PublicUser, User } from '../types'
+import { signUpSchema } from '../validation/schemas'
+import type { PublicUser } from '../types'
 
-function toPublicUser(user: User): PublicUser {
-  const { password: _password, ...publicUser } = user
-  void _password
-  return publicUser
+async function fetchUserProfile(userId: string): Promise<PublicUser> {
+  const profile = await UserRepository.findById(userId)
+  if (!profile) {
+    throw new Error(
+      'Signed in, but no matching row exists in public.users yet. If you just ran the SQL ' +
+        'schema, sign up again — the handle_new_user() trigger creates this row automatically ' +
+        'on new sign-ups, not for accounts created before the trigger existed.',
+    )
+  }
+  return profile
 }
 
-let mockCurrentUser: PublicUser | null = null
-
-/**
- * Handles authentication: sign in, sign up, sign out, and session state.
- *
- * TODO(supabase): Back this service with Supabase Auth instead of the `users`
- * table directly.
- * - signIn            -> supabase.auth.signInWithPassword({ email, password })
- * - signUp            -> supabase.auth.signUp({ email, password, options: { data: { name } } })
- * - signOut           -> supabase.auth.signOut()
- * - getCurrentUser    -> supabase.auth.getUser() / supabase.auth.getSession()
- * - onAuthStateChange -> supabase.auth.onAuthStateChange(callback)
- *
- * Once Supabase Auth is wired up, the `users` table becomes profile data keyed
- * by the auth user id, and this service stops storing/comparing passwords itself.
- */
+/** Handles authentication: sign in, sign up, sign out, and session state via Supabase Auth. */
 export class AuthService {
   static async signIn(email: string, password: string): Promise<PublicUser> {
-    // TODO(supabase): replace with supabase.auth.signInWithPassword({ email, password })
-    const user = await UserRepository.findByEmail(email)
-    if (!user || user.password !== password) {
-      throw new Error('Invalid email or password')
-    }
-    mockCurrentUser = toPublicUser(user)
-    return mockCurrentUser
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw new Error(error.message)
+    if (!data.user) throw new Error('Invalid email or password')
+    return fetchUserProfile(data.user.id)
   }
 
   static async signUp(name: string, email: string, password: string): Promise<PublicUser> {
-    // TODO(supabase): replace with supabase.auth.signUp({ email, password, options: { data: { name } } })
-    const data = createUserSchema.parse({ name, email, password, role: 'Customer' })
-    const existing = await UserRepository.findByEmail(data.email)
-    if (existing) {
-      throw new Error('An account with this email already exists')
+    const parsed = signUpSchema.parse({ name, email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email: parsed.email,
+      password: parsed.password,
+      options: { data: { name: parsed.name } },
+    })
+    if (error) throw new Error(error.message)
+    if (!data.user) throw new Error('Sign up failed. Please try again.')
+
+    if (!data.session) {
+      // No session means the project has "Confirm email" enabled: the auth.users row
+      // (and the matching public.users row, via the trigger) already exist, but the
+      // caller isn't authenticated yet, so there's no session to read a profile back as.
+      throw new Error('Check your email to confirm your account, then sign in.')
     }
-    const user = await UserRepository.create(data)
-    mockCurrentUser = toPublicUser(user)
-    return mockCurrentUser
+
+    return fetchUserProfile(data.user.id)
   }
 
   static async signOut(): Promise<void> {
-    // TODO(supabase): replace with supabase.auth.signOut()
-    mockCurrentUser = null
+    const { error } = await supabase.auth.signOut()
+    if (error) throw new Error(error.message)
   }
 
   static async getCurrentUser(): Promise<PublicUser | null> {
-    // TODO(supabase): replace with supabase.auth.getUser()
-    return mockCurrentUser
+    const { data, error } = await supabase.auth.getUser()
+    if (error || !data.user) return null
+    return UserRepository.findById(data.user.id)
   }
 
+  /** Returns an unsubscribe function; call it on cleanup (e.g. in a useEffect). */
   static onAuthStateChange(callback: (user: PublicUser | null) => void): () => void {
-    // TODO(supabase): replace with supabase.auth.onAuthStateChange((_event, session) => callback(...))
-    callback(mockCurrentUser)
-    return () => {
-      /* TODO(supabase): unsubscribe the real listener here */
-    }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        callback(null)
+        return
+      }
+      UserRepository.findById(session.user.id).then(callback)
+    })
+    return () => subscription.unsubscribe()
   }
 }
