@@ -50,14 +50,17 @@ export function ContactPage() {
 
           <div>
             <p className="font-medium text-charcoal-50">Phone</p>
-            <a href={`tel:${settings?.phone ?? ''}`} className="mt-1 block text-brand-300 hover:underline">
+            <a href={`tel:${settings?.phone ?? ''}`} className="mt-1 block text-primary-300 hover:underline">
               {settings?.phone ?? '—'}
             </a>
           </div>
 
           <div>
             <p className="font-medium text-charcoal-50">Email</p>
-            <a href={`mailto:${settings?.email ?? ''}`} className="mt-1 block text-brand-300 hover:underline">
+            <a
+              href={`mailto:${settings?.email ?? ''}`}
+              className="mt-1 block text-primary-300 hover:underline"
+            >
               {settings?.email ?? '—'}
             </a>
           </div>
@@ -72,7 +75,7 @@ export function ContactPage() {
                     href={url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-brand-300 hover:underline"
+                    className="text-primary-300 hover:underline"
                   >
                     {SOCIAL_LABELS[key] ?? key}
                   </a>

@@ -84,13 +84,13 @@ export function OrderPage() {
           <h1 className="font-display text-2xl text-charcoal-50">Order Placed</h1>
           <p className="mt-2 text-charcoal-100">
             Thanks, {confirmedOrder.customer_name}. Your order total is{' '}
-            <span className="font-medium text-brand-200">{formatPrice(confirmedOrder.total)}</span>.
+            <span className="font-medium text-primary-200">{formatPrice(confirmedOrder.total)}</span>.
           </p>
-          <p className="mt-4 text-sm text-brand-300">Status: {confirmedOrder.status}</p>
+          <p className="mt-4 text-sm text-primary-300">Status: {confirmedOrder.status}</p>
           <button
             type="button"
             onClick={() => setConfirmedOrder(null)}
-            className="mt-6 rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300"
+            className="mt-6 rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300"
           >
             Place Another Order
           </button>
@@ -165,7 +165,7 @@ export function OrderPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="self-start rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-60"
+          className="self-start rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Placing order…' : 'Place Order'}
         </button>

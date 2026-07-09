@@ -107,7 +107,7 @@ export function AdminCategoriesPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Saving…' : editingId ? 'Save Changes' : 'Add Category'}
           </button>
@@ -115,7 +115,7 @@ export function AdminCategoriesPage() {
             <button
               type="button"
               onClick={cancelEdit}
-              className="text-sm font-medium text-charcoal-100 hover:text-brand-300"
+              className="text-sm font-medium text-charcoal-100 hover:text-primary-300"
             >
               Cancel
             </button>
@@ -136,7 +136,7 @@ export function AdminCategoriesPage() {
                 <button
                   type="button"
                   onClick={() => startEdit(category)}
-                  className="text-brand-300 hover:underline"
+                  className="text-primary-300 hover:underline"
                 >
                   Edit
                 </button>

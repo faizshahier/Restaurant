@@ -14,7 +14,7 @@ const NAV_LINKS = [
 ]
 
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
-  `transition-colors hover:text-brand-300 ${isActive ? 'text-brand-300' : 'text-charcoal-50'}`
+  `transition-colors hover:text-primary-300 ${isActive ? 'text-primary-300' : 'text-charcoal-50'}`
 
 function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
   const { user, isLoading, signOut } = useAuth()
@@ -25,7 +25,7 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
     return (
       <div className="flex items-center gap-3 text-sm">
         {(user.role === 'Admin' || user.role === 'restaurant_manager') && (
-          <Link to="/admin" onClick={onNavigate} className="font-medium text-brand-300 hover:underline">
+          <Link to="/admin" onClick={onNavigate} className="font-medium text-primary-300 hover:underline">
             Admin
           </Link>
         )}
@@ -36,7 +36,7 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
             void signOut()
             onNavigate?.()
           }}
-          className="font-medium text-brand-300 hover:underline"
+          className="font-medium text-primary-300 hover:underline"
         >
           Sign Out
         </button>
@@ -45,7 +45,7 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <Link to="/sign-in" onClick={onNavigate} className="text-sm font-medium text-brand-300 hover:underline">
+    <Link to="/sign-in" onClick={onNavigate} className="text-sm font-medium text-primary-300 hover:underline">
       Sign In
     </Link>
   )
@@ -70,14 +70,14 @@ export function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <NavLink
           to="/"
-          className="flex items-center gap-2 font-display text-xl font-semibold tracking-wide text-brand-200"
+          className="flex items-center gap-2 font-display text-xl font-semibold tracking-wide text-primary-200"
         >
           {logo && <img src={logo} alt="" className="h-8 w-8 rounded-full object-cover" />}
           {restaurantName}
           {isOpenNow !== null && (
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                isOpenNow ? 'bg-green-400/20 text-green-300' : 'bg-charcoal-700 text-charcoal-100'
+                isOpenNow ? 'bg-available/20 text-available' : 'bg-out-of-stock/20 text-out-of-stock'
               }`}
             >
               {isOpenNow ? 'Open Now' : 'Closed'}
@@ -122,7 +122,7 @@ export function Header() {
               to={link.to}
               end={link.to === '/'}
               className={({ isActive }) =>
-                `rounded-md px-3 py-2 ${isActive ? 'bg-charcoal-800 text-brand-300' : 'text-charcoal-50'}`
+                `rounded-md px-3 py-2 ${isActive ? 'bg-charcoal-800 text-primary-300' : 'text-charcoal-50'}`
               }
               onClick={() => setIsMenuOpen(false)}
             >

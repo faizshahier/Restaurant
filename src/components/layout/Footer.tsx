@@ -24,7 +24,7 @@ export function Footer() {
     <footer className="border-t border-charcoal-700 bg-charcoal-800">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
         <div>
-          <p className="font-display text-lg text-brand-200">
+          <p className="font-display text-lg text-primary-200">
             {settings?.restaurant_name ?? 'The Restaurant'}
           </p>
           <p className="mt-2 text-sm text-charcoal-100">{settings?.address ?? 'Address coming soon'}</p>
@@ -36,7 +36,7 @@ export function Footer() {
                   href={url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-brand-300 hover:underline"
+                  className="text-primary-300 hover:underline"
                 >
                   {SOCIAL_LABELS[key] ?? key}
                 </a>

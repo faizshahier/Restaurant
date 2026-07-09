@@ -87,7 +87,7 @@ export function SignUpPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Creating account…' : 'Sign Up'}
           </button>
@@ -95,7 +95,7 @@ export function SignUpPage() {
 
         <p className="mt-6 text-sm text-charcoal-100">
           Already have an account?{' '}
-          <Link to="/sign-in" className="text-brand-300 hover:underline">
+          <Link to="/sign-in" className="text-primary-300 hover:underline">
             Sign in
           </Link>
         </p>

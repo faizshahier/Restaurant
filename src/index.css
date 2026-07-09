@@ -4,23 +4,69 @@
   --font-sans: 'Segoe UI', system-ui, Roboto, sans-serif;
   --font-display: Georgia, 'Times New Roman', serif;
 
-  --color-brand-50: #fdf6ec;
-  --color-brand-100: #faead0;
-  --color-brand-200: #f3d29d;
-  --color-brand-300: #eab568;
-  --color-brand-400: #dd9640;
-  --color-brand-500: #c17a2b;
-  --color-brand-600: #9c5f22;
-  --color-brand-700: #7a4a1f;
-  --color-brand-800: #5c391c;
-  --color-brand-900: #3d2513;
+  /*
+   * Brand — Primary
+   * Warm orange/red, tuned to read as appetizing and energetic. Used for
+   * primary actions (buttons, links) and headline accents.
+   */
+  --color-primary-50: #fdf6ec;
+  --color-primary-100: #faead0;
+  --color-primary-200: #f3d29d;
+  --color-primary-300: #eab568;
+  --color-primary-400: #dd9640;
+  --color-primary-500: #c17a2b;
+  --color-primary-600: #9c5f22;
+  --color-primary-700: #7a4a1f;
+  --color-primary-800: #5c391c;
+  --color-primary-900: #3d2513;
 
+  /*
+   * Brand — Secondary
+   * Deep herb green, used for fresh/positive accents that shouldn't compete
+   * with primary (e.g. availability, confirmations).
+   */
+  --color-secondary-50: #f1f8f4;
+  --color-secondary-100: #dcefe2;
+  --color-secondary-200: #b3dcc0;
+  --color-secondary-300: #83c399;
+  --color-secondary-400: #55a873;
+  --color-secondary-500: #3a8a58;
+  --color-secondary-600: #2c6d44;
+  --color-secondary-700: #245637;
+  --color-secondary-800: #1d422b;
+  --color-secondary-900: #142e1e;
+
+  /*
+   * Neutral / Surface
+   * Backgrounds, borders, and body text. Not a "brand" color — this is the
+   * dark UI's base palette.
+   */
   --color-charcoal-50: #f6f6f7;
   --color-charcoal-100: #e2e2e5;
   --color-charcoal-400: #6b6b73;
   --color-charcoal-700: #302f36;
   --color-charcoal-800: #1e1d22;
   --color-charcoal-900: #131215;
+
+  /*
+   * Status — Order lifecycle
+   * One color per OrderStatus (see src/types/database.ts). Used as
+   * bg-status-pending (etc.) at 20% opacity paired with the solid text color,
+   * for soft badge treatments.
+   */
+  --color-status-pending: #fbbf24;
+  --color-status-preparing: #60a5fa;
+  --color-status-shipped: #4ade80;
+  --color-status-cancelled: var(--color-charcoal-400);
+
+  /*
+   * Status — Food availability
+   * Distinct tokens from order status even where values coincide, since the
+   * two concepts (an order's progress vs. a dish's stock) can diverge later
+   * without forcing a rename.
+   */
+  --color-available: var(--color-secondary-400);
+  --color-out-of-stock: var(--color-charcoal-400);
 }
 
 @layer base {

@@ -9,8 +9,8 @@ const ALL_CATEGORIES = 'all'
 function pillClasses(active: boolean) {
   return `rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? 'border-brand-300 bg-brand-400 text-charcoal-900'
-      : 'border-charcoal-700 text-charcoal-100 hover:border-brand-300 hover:text-brand-300'
+      ? 'border-primary-300 bg-primary-400 text-charcoal-900'
+      : 'border-charcoal-700 text-charcoal-100 hover:border-primary-300 hover:text-primary-300'
   }`
 }
 

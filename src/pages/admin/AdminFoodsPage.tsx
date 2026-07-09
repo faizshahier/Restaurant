@@ -196,7 +196,7 @@ export function AdminFoodsPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Saving…' : editingId ? 'Save Changes' : 'Add Food'}
           </button>
@@ -204,7 +204,7 @@ export function AdminFoodsPage() {
             <button
               type="button"
               onClick={cancelEdit}
-              className="text-sm font-medium text-charcoal-100 hover:text-brand-300"
+              className="text-sm font-medium text-charcoal-100 hover:text-primary-300"
             >
               Cancel
             </button>
@@ -244,8 +244,8 @@ export function AdminFoodsPage() {
                       onClick={() => void toggleAvailability(food)}
                       className={`rounded-full px-2 py-1 text-xs font-medium ${
                         food.available
-                          ? 'bg-green-400/20 text-green-300'
-                          : 'bg-charcoal-700 text-charcoal-100'
+                          ? 'bg-available/20 text-available'
+                          : 'bg-out-of-stock/20 text-out-of-stock'
                       }`}
                     >
                       {food.available ? 'Available' : 'Hidden'}
@@ -256,7 +256,7 @@ export function AdminFoodsPage() {
                       <button
                         type="button"
                         onClick={() => startEdit(food)}
-                        className="text-brand-300 hover:underline"
+                        className="text-primary-300 hover:underline"
                       >
                         Edit
                       </button>

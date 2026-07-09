@@ -60,7 +60,7 @@ export function AboutPage() {
           <div className="grid gap-8 sm:grid-cols-3">
             {VALUES.map((value) => (
               <div key={value.title}>
-                <h2 className="font-display text-lg text-brand-200">{value.title}</h2>
+                <h2 className="font-display text-lg text-primary-200">{value.title}</h2>
                 <p className="mt-2 text-sm text-charcoal-100">{value.description}</p>
               </div>
             ))}

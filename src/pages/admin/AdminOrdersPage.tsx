@@ -7,17 +7,17 @@ import type { Order, OrderStatus } from '../../types'
 const STATUS_FILTERS: Array<OrderStatus | 'All'> = ['All', 'Pending', 'Preparing', 'Shipped', 'Cancelled']
 
 const statusBadgeClasses: Record<OrderStatus, string> = {
-  Pending: 'bg-yellow-400/20 text-yellow-300',
-  Preparing: 'bg-blue-400/20 text-blue-300',
-  Shipped: 'bg-green-400/20 text-green-300',
-  Cancelled: 'bg-charcoal-700 text-charcoal-100',
+  Pending: 'bg-status-pending/20 text-status-pending',
+  Preparing: 'bg-status-preparing/20 text-status-preparing',
+  Shipped: 'bg-status-shipped/20 text-status-shipped',
+  Cancelled: 'bg-status-cancelled/20 text-status-cancelled',
 }
 
 function pillClasses(active: boolean) {
   return `rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? 'border-brand-300 bg-brand-400 text-charcoal-900'
-      : 'border-charcoal-700 text-charcoal-100 hover:border-brand-300 hover:text-brand-300'
+      ? 'border-primary-300 bg-primary-400 text-charcoal-900'
+      : 'border-charcoal-700 text-charcoal-100 hover:border-primary-300 hover:text-primary-300'
   }`
 }
 
@@ -104,7 +104,7 @@ export function AdminOrdersPage() {
                           <button
                             type="button"
                             onClick={() => void updateStatus(order.id, 'Preparing')}
-                            className="text-brand-300 hover:underline"
+                            className="text-primary-300 hover:underline"
                           >
                             Start Preparing
                           </button>
@@ -122,7 +122,7 @@ export function AdminOrdersPage() {
                           <button
                             type="button"
                             onClick={() => void updateStatus(order.id, 'Shipped')}
-                            className="text-brand-300 hover:underline"
+                            className="text-primary-300 hover:underline"
                           >
                             Mark Shipped
                           </button>

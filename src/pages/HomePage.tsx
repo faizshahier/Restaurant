@@ -48,13 +48,13 @@ export function HomePage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 to="/menu"
-                className="rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300"
+                className="rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300"
               >
                 View Menu
               </Link>
               <Link
                 to="/order"
-                className="rounded-md border border-charcoal-700 px-6 py-3 text-sm font-semibold text-charcoal-50 transition-colors hover:border-brand-300 hover:text-brand-300"
+                className="rounded-md border border-charcoal-700 px-6 py-3 text-sm font-semibold text-charcoal-50 transition-colors hover:border-primary-300 hover:text-primary-300"
               >
                 Order Now
               </Link>
@@ -79,7 +79,7 @@ export function HomePage() {
           <div className="grid gap-8 sm:grid-cols-3">
             {HIGHLIGHTS.map((highlight) => (
               <div key={highlight.title}>
-                <h3 className="font-display text-lg text-brand-200">{highlight.title}</h3>
+                <h3 className="font-display text-lg text-primary-200">{highlight.title}</h3>
                 <p className="mt-2 text-sm text-charcoal-100">{highlight.description}</p>
               </div>
             ))}
@@ -98,7 +98,7 @@ export function HomePage() {
             </div>
             <Link
               to="/order"
-              className="shrink-0 rounded-md bg-brand-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-brand-300"
+              className="shrink-0 rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300"
             >
               Order Now
             </Link>
@@ -113,7 +113,7 @@ export function HomePage() {
             What started as a single family table has grown into a neighborhood favorite, without losing the
             things that mattered from day one: honest food and a genuine welcome.
           </p>
-          <Link to="/about" className="text-brand-300 hover:underline">
+          <Link to="/about" className="text-primary-300 hover:underline">
             Learn more about us
           </Link>
         </div>

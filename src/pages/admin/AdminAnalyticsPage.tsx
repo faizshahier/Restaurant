@@ -28,7 +28,7 @@ function StatCard({ label, value }: StatCardProps) {
   return (
     <div className="rounded-lg border border-charcoal-700 bg-charcoal-800 p-6">
       <p className="text-sm text-charcoal-100">{label}</p>
-      <p className="mt-1 font-display text-2xl text-brand-200">{value}</p>
+      <p className="mt-1 font-display text-2xl text-primary-200">{value}</p>
     </div>
   )
 }
@@ -107,7 +107,7 @@ export function AdminAnalyticsPage() {
                   <span className="w-40 shrink-0 truncate text-sm text-charcoal-50">{seller.name}</span>
                   <div className="h-3 flex-1 overflow-hidden rounded-full bg-charcoal-800">
                     <div
-                      className="h-full rounded-full bg-brand-400"
+                      className="h-full rounded-full bg-primary-400"
                       style={{ width: `${(seller.quantity / maxQuantity) * 100}%` }}
                     />
                   </div>

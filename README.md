@@ -99,6 +99,43 @@ Data flows through three layers, each replaceable independently:
 | `SettingsService` | `SettingsRepository` | Restaurant name, logo, contact info, delivery zone, hours                                               |
 | `StorageService`  | —                    | File uploads (menu photos, gallery images)                                                              |
 
+## Design System: Color Tokens
+
+All color is defined once, in `src/index.css`, as Tailwind v4 `@theme` CSS variables — no hex codes
+scattered through components. Tailwind auto-generates `bg-*`/`text-*`/`border-*` utilities (and their
+opacity modifiers, e.g. `bg-status-pending/20`) for every token below.
+
+| Category                     | Tokens                                                                     | Use                                                          |
+| ---------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Brand — Primary**          | `primary-50` … `primary-900` (warm orange/red)                             | Primary actions — buttons, links, headline accents           |
+| **Brand — Secondary**        | `secondary-50` … `secondary-900` (herb green)                              | Fresh/positive accents that shouldn't compete with primary   |
+| **Neutral / Surface**        | `charcoal-50` … `charcoal-900`                                             | Backgrounds, borders, body text — the dark UI's base palette |
+| **Status — Order lifecycle** | `status-pending`, `status-preparing`, `status-shipped`, `status-cancelled` | One color per `OrderStatus`, for order badges                |
+| **Status — Availability**    | `available`, `out-of-stock`                                                | A dish's stock status or the restaurant's open/closed state  |
+
+`status-cancelled` and `out-of-stock` both alias `charcoal-400` (muted/inactive), and `available`
+aliases `secondary-400` (fresh = available) — composed from existing tokens rather than new raw hex
+values, so a future palette change only touches one line.
+
+**Usage in components** (see `FoodCard.tsx`, `AdminOrdersPage.tsx`, `Header.tsx` for real examples):
+
+```tsx
+// A primary action button
+<button className="bg-primary-400 text-charcoal-900 hover:bg-primary-300">Place Order</button>
+
+// A status badge — soft background at 20% opacity, solid text
+<span className={`rounded-full px-2 py-1 text-xs ${
+  order.status === 'Shipped' ? 'bg-status-shipped/20 text-status-shipped' : '...'
+}`}>
+  {order.status}
+</span>
+
+// An availability badge
+<span className={food.available ? 'bg-available/20 text-available' : 'bg-out-of-stock/20 text-out-of-stock'}>
+  {food.available ? 'Available' : 'Hidden'}
+</span>
+```
+
 ## Responsive Design
 
 The layout is built mobile-first with Tailwind breakpoints:
@@ -185,6 +222,10 @@ The layout is built mobile-first with Tailwind breakpoints:
   **Scope note:** no `restaurants` table or IDOR/ownership checks were added — see "Restaurant
   manager role & single-tenant scope" above for why, and what changes if this becomes multi-tenant.
 
+- [x] **Design System — Centralized Color Tokens**: renamed the ad-hoc `brand-*` scale to `primary-*`,
+      added a `secondary-*` (herb green) brand scale, and introduced named `status-*`/availability
+      tokens (see "Design System: Color Tokens" above) so order-status and availability badges no
+      longer hardcode raw Tailwind palette colors (`yellow-400`, `green-300`, etc.).
 - [ ] Chapter 11 — TBD (awaiting approval to proceed)
 
 Each chapter is completed, documented, and committed before the next one begins.
