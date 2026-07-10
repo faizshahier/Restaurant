@@ -14,6 +14,8 @@ const ADMIN_LINKS: AdminLink[] = [
   { to: '/admin/foods', label: 'Foods', roles: ['Admin', 'restaurant_manager'] },
   { to: '/admin/analytics', label: 'Analytics', roles: ['Admin', 'restaurant_manager'] },
   { to: '/admin/categories', label: 'Categories', roles: ['Admin'] },
+  { to: '/admin/gallery', label: 'Gallery', roles: ['Admin'] },
+  { to: '/admin/settings', label: 'Settings', roles: ['Admin'] },
 ]
 
 const linkClasses = ({ isActive }: { isActive: boolean }) =>

@@ -1,7 +1,7 @@
 # Restaurant Website
 
-A production-quality, modular, and scalable restaurant website. Built chapter by chapter, ready for
-Supabase integration.
+A production-quality, modular, and scalable restaurant website. Built chapter by chapter, fully
+connected to Supabase (auth, database, storage — see "Supabase Setup" below).
 
 ## Tech Stack
 
@@ -284,6 +284,14 @@ The layout is built mobile-first with Tailwind breakpoints:
     Supabase Auth (correctly blocked by email confirmation, a project setting, not a bug). Order
     placement is wired but fails until `schema.sql` is re-run in the SQL Editor to pick up the new
     `create_order_with_items` function — the script is idempotent, so re-running it is safe.
-- [ ] Chapter 11 — TBD (awaiting approval to proceed)
+- [x] **Chapter 11 — Closing: Gallery & Settings Admin (final chapter)**: the last two entities with
+      full-CRUD services but no admin UI. `/admin/gallery` (add/edit/delete photos, reusing the
+      `FoodCard`-style photo tile pattern from the public Gallery page) and `/admin/settings` (one
+      form covering restaurant info, all 7 days of opening hours, and social links, wired to
+      `SettingsService.updateSettings()`). Both gated Admin-only in `AdminLayout` and the router,
+      matching Categories. This completes admin coverage for every entity in the schema: Orders,
+      Foods, Categories, Gallery, Settings, plus Analytics.
 
-Each chapter is completed, documented, and committed before the next one begins.
+Each chapter is completed, documented, and committed before the next one begins. The project is now
+feature-complete against the original schema: every table has a public-facing view where relevant, a
+service/repository pair wired to real Supabase, and admin management where the spec called for it.

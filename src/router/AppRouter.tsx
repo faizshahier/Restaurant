@@ -14,6 +14,8 @@ import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
 import { AdminFoodsPage } from '../pages/admin/AdminFoodsPage'
 import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
 import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage'
+import { AdminGalleryPage } from '../pages/admin/AdminGalleryPage'
+import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 const router = createBrowserRouter([
@@ -46,6 +48,22 @@ const router = createBrowserRouter([
             element: (
               <RequireRole roles={['Admin']}>
                 <AdminCategoriesPage />
+              </RequireRole>
+            ),
+          },
+          {
+            path: 'gallery',
+            element: (
+              <RequireRole roles={['Admin']}>
+                <AdminGalleryPage />
+              </RequireRole>
+            ),
+          },
+          {
+            path: 'settings',
+            element: (
+              <RequireRole roles={['Admin']}>
+                <AdminSettingsPage />
               </RequireRole>
             ),
           },
