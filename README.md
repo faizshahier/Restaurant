@@ -314,3 +314,5 @@ The layout is built mobile-first with Tailwind breakpoints:
 Each chapter is completed, documented, and committed before the next one begins. The project is now
 feature-complete against the original schema: every table has a public-facing view where relevant, a
 service/repository pair wired to real Supabase, and admin management where the spec called for it.
+#   R e s t a u r a n t  
+ 
