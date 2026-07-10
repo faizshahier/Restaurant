@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { AuthService } from '../services'
+import { AuthService, type SignUpResult } from '../services'
 import type { PublicUser } from '../types'
 
 interface AuthContextValue {
   user: PublicUser | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<PublicUser>
-  signUp: (name: string, email: string, password: string) => Promise<PublicUser>
+  signUp: (name: string, email: string, password: string) => Promise<SignUpResult>
+  verifyEmailOtp: (email: string, token: string) => Promise<PublicUser>
+  resendSignUpCode: (email: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -33,9 +35,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(name: string, email: string, password: string) {
-    const newUser = await AuthService.signUp(name, email, password)
-    setUser(newUser)
-    return newUser
+    const result = await AuthService.signUp(name, email, password)
+    if (result.status === 'signed-in') {
+      setUser(result.user)
+    }
+    return result
+  }
+
+  async function verifyEmailOtp(email: string, token: string) {
+    const verifiedUser = await AuthService.verifyEmailOtp(email, token)
+    setUser(verifiedUser)
+    return verifiedUser
+  }
+
+  async function resendSignUpCode(email: string) {
+    await AuthService.resendSignUpCode(email)
   }
 
   async function signOut() {
@@ -44,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, signIn, signUp, verifyEmailOtp, resendSignUpCode, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )

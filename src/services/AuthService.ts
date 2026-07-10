@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { UserRepository } from '../repositories'
-import { signUpSchema } from '../validation/schemas'
+import { signUpSchema, verifyEmailOtpSchema } from '../validation/schemas'
 import type { PublicUser } from '../types'
 
 async function fetchUserProfile(userId: string): Promise<PublicUser> {
@@ -15,6 +15,9 @@ async function fetchUserProfile(userId: string): Promise<PublicUser> {
   return profile
 }
 
+export type SignUpResult =
+  { status: 'signed-in'; user: PublicUser } | { status: 'needs-verification'; email: string }
+
 /** Handles authentication: sign in, sign up, sign out, and session state via Supabase Auth. */
 export class AuthService {
   static async signIn(email: string, password: string): Promise<PublicUser> {
@@ -24,7 +27,7 @@ export class AuthService {
     return fetchUserProfile(data.user.id)
   }
 
-  static async signUp(name: string, email: string, password: string): Promise<PublicUser> {
+  static async signUp(name: string, email: string, password: string): Promise<SignUpResult> {
     const parsed = signUpSchema.parse({ name, email, password })
     const { data, error } = await supabase.auth.signUp({
       email: parsed.email,
@@ -35,13 +38,38 @@ export class AuthService {
     if (!data.user) throw new Error('Sign up failed. Please try again.')
 
     if (!data.session) {
-      // No session means the project has "Confirm email" enabled: the auth.users row
-      // (and the matching public.users row, via the trigger) already exist, but the
-      // caller isn't authenticated yet, so there's no session to read a profile back as.
-      throw new Error('Check your email to confirm your account, then sign in.')
+      // "Confirm email" is enabled on this project: the auth.users row (and the matching
+      // public.users row, via the trigger) already exist, but there's no session yet. The
+      // caller enters the 6-digit code Supabase just emailed them next, via verifyEmailOtp().
+      return { status: 'needs-verification', email: parsed.email }
     }
 
+    return { status: 'signed-in', user: await fetchUserProfile(data.user.id) }
+  }
+
+  /**
+   * Completes sign-up after the caller enters the code Supabase emailed them.
+   *
+   * TODO(dashboard): the "Confirm signup" email template (Authentication → Email
+   * Templates in the Supabase dashboard) must include `{{ .Token }}` for this code to
+   * actually appear in the email — the default template only shows a confirmation link.
+   */
+  static async verifyEmailOtp(email: string, token: string): Promise<PublicUser> {
+    const parsed = verifyEmailOtpSchema.parse({ email, token })
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: parsed.email,
+      token: parsed.token,
+      type: 'signup',
+    })
+    if (error) throw new Error(error.message)
+    if (!data.user) throw new Error('Verification failed. Please try again.')
     return fetchUserProfile(data.user.id)
+  }
+
+  /** Re-sends the sign-up verification code (rate-limited by Supabase). */
+  static async resendSignUpCode(email: string): Promise<void> {
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
+    if (error) throw new Error(error.message)
   }
 
   static async signOut(): Promise<void> {

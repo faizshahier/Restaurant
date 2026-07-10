@@ -33,6 +33,16 @@ export const signInSchema = z.object({
 })
 export type SignInInput = z.infer<typeof signInSchema>
 
+// The 6-digit code Supabase emails after sign-up when "Confirm email" is enabled.
+export const verifyEmailOtpSchema = z.object({
+  email: z.email('Enter a valid email address'),
+  token: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit code from your email'),
+})
+export type VerifyEmailOtpInput = z.infer<typeof verifyEmailOtpSchema>
+
 export const createCategorySchema = z.object({
   name: z.string().trim().min(1, 'Category name is required'),
 })

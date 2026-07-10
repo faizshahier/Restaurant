@@ -40,9 +40,20 @@ throws immediately on startup if the env vars below aren't set, rather than degr
    ```sql
    update public.users set role = 'Admin' where email = 'you@example.com';
    ```
-5. By default, Supabase projects require email confirmation before a session exists. For local
-   development, either confirm via the email Supabase sends, or turn it off under Authentication →
-   Providers → Email → "Confirm email" in the dashboard.
+5. By default, Supabase projects require email confirmation before a session exists. The app
+   implements this as an in-app 6-digit code (not a confirmation link) — see "Email Verification"
+   below for the one dashboard step this needs.
+
+## Email Verification
+
+Sign-up uses a 6-digit code typed into the app (`AuthService.verifyEmailOtp`, via
+`supabase.auth.verifyOtp({ type: 'signup' })`) instead of the default "click a link in your email"
+flow — no separate sign-in step needed afterward. This requires one manual change in your Supabase
+project: open **Authentication → Email Templates → Confirm signup** and make sure the template
+includes `{{ .Token }}` (the default template only includes `{{ .ConfirmationURL }}`, a link, not a
+code). Without this, `signUp()` still works correctly, but the email won't contain a code to type in.
+
+`AuthService.resendSignUpCode()` re-sends the code (subject to Supabase's own rate limiting).
 
 ## Project Structure
 
@@ -291,6 +302,14 @@ The layout is built mobile-first with Tailwind breakpoints:
       `SettingsService.updateSettings()`). Both gated Admin-only in `AdminLayout` and the router,
       matching Categories. This completes admin coverage for every entity in the schema: Orders,
       Foods, Categories, Gallery, Settings, plus Analytics.
+
+- [x] **Email OTP verification**: replaced the default "click a link in your email" confirmation
+      flow with an in-app 6-digit code. `AuthService.signUp()` now returns a
+      `{ status: 'signed-in' | 'needs-verification' }` result instead of always a user, and gained
+      `verifyEmailOtp()` / `resendSignUpCode()`. `SignUpPage` shows a code-entry step when
+      verification is needed, with client-side validation on the code and a working "Resend code"
+      button — both verified live against the real project. Requires one manual dashboard step (see
+      "Email Verification" above): the "Confirm signup" email template must include `{{ .Token }}`.
 
 Each chapter is completed, documented, and committed before the next one begins. The project is now
 feature-complete against the original schema: every table has a public-facing view where relevant, a

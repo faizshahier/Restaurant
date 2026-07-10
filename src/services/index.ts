@@ -1,4 +1,4 @@
-export { AuthService } from './AuthService'
+export { AuthService, type SignUpResult } from './AuthService'
 export { FoodService } from './FoodService'
 export { CategoryService } from './CategoryService'
 export { OrderService } from './OrderService'
