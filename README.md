@@ -316,6 +316,17 @@ The layout is built mobile-first with Tailwind breakpoints:
       "Customers can view own orders" RLS policy already scopes the result set correctly for
       whoever is asking (nothing for an anonymous caller, own orders for a customer, everything for
       staff). Linked from the Header for any signed-in user.
+- [x] **Admin Users page**: `/admin/users` (Admin-only), lists every account with an editable role
+      dropdown (`Customer` / `Restaurant Manager` / `Admin`) and a delete action, using
+      `UserService.updateProfile()`/`deleteUser()` — no new service or repository code needed. Guards
+      against self-lockout: demoting your own account away from Admin requires an extra confirmation,
+      and you cannot delete your own row from this page. **Deliberately no "Add User" button** —
+      explained in-page: creating a login can only happen through self-service sign-up or Supabase's
+      Admin API (which needs the secret key, never exposed to the browser — see the earlier decision
+      not to add a backend). New accounts self-register at `/sign-up`; an admin assigns their role
+      here afterward. Deleting a user here removes their `public.users` profile (site access, role)
+      but not their underlying Supabase Auth login — full account deletion is a Supabase dashboard
+      action (Authentication → Users), also because it requires the Admin API.
 
 Each chapter is completed, documented, and committed before the next one begins. The project is now
 feature-complete against the original schema: every table has a public-facing view where relevant, a
