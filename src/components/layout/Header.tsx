@@ -29,6 +29,9 @@ function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
             Admin
           </Link>
         )}
+        <Link to="/my-orders" onClick={onNavigate} className="font-medium text-primary-300 hover:underline">
+          My Orders
+        </Link>
         <span className="text-charcoal-100">Hi, {user.name.split(' ')[0]}</span>
         <button
           type="button"

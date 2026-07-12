@@ -5,6 +5,7 @@ import { RequireRole } from '../components/auth/RequireRole'
 import { HomePage } from '../pages/HomePage'
 import { MenuPage } from '../pages/MenuPage'
 import { OrderPage } from '../pages/OrderPage'
+import { MyOrdersPage } from '../pages/MyOrdersPage'
 import { GalleryPage } from '../pages/GalleryPage'
 import { AboutPage } from '../pages/AboutPage'
 import { ContactPage } from '../pages/ContactPage'
@@ -31,6 +32,14 @@ const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'sign-in', element: <SignInPage /> },
       { path: 'sign-up', element: <SignUpPage /> },
+      {
+        path: 'my-orders',
+        element: (
+          <RequireRole roles={['Admin', 'Customer', 'restaurant_manager']}>
+            <MyOrdersPage />
+          </RequireRole>
+        ),
+      },
       {
         path: 'admin',
         element: (

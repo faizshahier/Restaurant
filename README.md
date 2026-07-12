@@ -310,9 +310,13 @@ The layout is built mobile-first with Tailwind breakpoints:
       verification is needed, with client-side validation on the code and a working "Resend code"
       button — both verified live against the real project. Requires one manual dashboard step (see
       "Email Verification" above): the "Confirm signup" email template must include `{{ .Token }}`.
+- [x] **My Orders page**: `/my-orders`, gated to any signed-in role, lists the current user's past and
+      current orders with status badges, line items, and totals. Reuses `OrderService.listOrders()`
+      unchanged — no new repository method or query parameter needed, since the `orders` table's
+      "Customers can view own orders" RLS policy already scopes the result set correctly for
+      whoever is asking (nothing for an anonymous caller, own orders for a customer, everything for
+      staff). Linked from the Header for any signed-in user.
 
 Each chapter is completed, documented, and committed before the next one begins. The project is now
 feature-complete against the original schema: every table has a public-facing view where relevant, a
 service/repository pair wired to real Supabase, and admin management where the spec called for it.
-#   R e s t a u r a n t  
- 
