@@ -57,6 +57,7 @@ export interface Order {
   id: string
   customer_name: string
   phone: string
+  location: string
   items: OrderItem[]
   total: number
   notes: string | null

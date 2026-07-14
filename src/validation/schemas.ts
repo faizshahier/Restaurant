@@ -77,6 +77,7 @@ export const orderItemSchema = z.object({
 export const createOrderSchema = z.object({
   customer_name: z.string().trim().min(1, 'Name is required'),
   phone: z.string().trim().min(1, 'Phone number is required'),
+  location: z.string().trim().min(1, 'Delivery location is required'),
   items: z.array(orderItemSchema).min(1, 'Select at least one item'),
   notes: z.string().trim().nullable().optional(),
 })

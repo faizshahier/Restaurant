@@ -54,6 +54,8 @@ export function MyOrdersPage() {
                 </span>
               </div>
 
+              <p className="mt-3 text-sm text-charcoal-100">Delivering to: {order.location}</p>
+
               <ul className="mt-3 space-y-1 text-sm text-charcoal-100">
                 {order.items.map((item, index) => (
                   <li key={`${item.food_id}-${index}`}>

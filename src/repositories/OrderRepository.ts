@@ -8,6 +8,7 @@ export interface OrderFilters {
 export interface CreateOrderRow {
   customer_name: string
   phone: string
+  location: string
   items: OrderItem[]
   total: number
   notes?: string | null
@@ -17,6 +18,7 @@ interface OrderRow {
   id: string
   customer_name: string
   phone: string
+  location: string
   total: number
   notes: string | null
   status: OrderStatus
@@ -66,6 +68,7 @@ export class OrderRepository {
       .rpc('create_order_with_items', {
         p_customer_name: data.customer_name,
         p_phone: data.phone,
+        p_location: data.location,
         p_total: data.total,
         p_notes: data.notes ?? null,
         p_user_id: user?.id ?? null,

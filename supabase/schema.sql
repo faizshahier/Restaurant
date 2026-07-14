@@ -134,6 +134,7 @@ create table if not exists public.orders (
   user_id uuid references public.users (id) on delete set null,
   customer_name text not null,
   phone text not null,
+  location text not null default '',
   total numeric(10, 2) not null default 0 check (total >= 0),
   notes text,
   status text not null default 'Pending'
@@ -141,6 +142,11 @@ create table if not exists public.orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Added after the table originally shipped without it — `add column if not exists`
+-- (rather than relying on `create table if not exists` above) so re-running this
+-- script against an already-live project actually adds the column.
+alter table public.orders add column if not exists location text not null default '';
 
 drop trigger if exists set_updated_at on public.orders;
 create trigger set_updated_at
@@ -178,9 +184,16 @@ create index if not exists order_items_food_id_idx on public.order_items (food_i
 -- (the default, spelled out for clarity) means it runs as the calling role, so the
 -- orders/order_items RLS policies below still apply inside it — a signed-in caller
 -- still can't place an order under someone else's user_id.
+-- The `location` parameter was inserted into this function's signature after it
+-- originally shipped without it. Postgres identifies functions by their full
+-- parameter type list, so `create or replace` below would leave the old 6-arg
+-- version behind as a separate overload instead of replacing it — drop it first.
+drop function if exists public.create_order_with_items(text, text, numeric, text, uuid, jsonb);
+
 create or replace function public.create_order_with_items(
   p_customer_name text,
   p_phone text,
+  p_location text,
   p_total numeric,
   p_notes text,
   p_user_id uuid,
@@ -194,8 +207,8 @@ as $$
 declare
   v_order public.orders;
 begin
-  insert into public.orders (customer_name, phone, total, notes, user_id)
-  values (p_customer_name, p_phone, p_total, p_notes, p_user_id)
+  insert into public.orders (customer_name, phone, location, total, notes, user_id)
+  values (p_customer_name, p_phone, p_location, p_total, p_notes, p_user_id)
   returning * into v_order;
 
   insert into public.order_items (order_id, food_id, food_name, quantity, price)

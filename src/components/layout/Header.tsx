@@ -1,58 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { NavLink } from 'react-router-dom'
 import { isRestaurantOpenNow } from '../../lib/hours'
 import { SettingsService } from '../../services'
-
-const NAV_LINKS = [
-  { to: '/', label: 'Home' },
-  { to: '/menu', label: 'Menu' },
-  { to: '/order', label: 'Order' },
-  { to: '/gallery', label: 'Gallery' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
-]
+import { AuthSection } from './AuthSection'
+import { MobileNav } from './MobileNav'
+import { NAV_LINKS } from './navLinks'
 
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
   `transition-colors hover:text-primary-300 ${isActive ? 'text-primary-300' : 'text-charcoal-50'}`
-
-function AuthSection({ onNavigate }: { onNavigate?: () => void }) {
-  const { user, isLoading, signOut } = useAuth()
-
-  if (isLoading) return null
-
-  if (user) {
-    return (
-      <div className="flex items-center gap-3 text-sm">
-        {(user.role === 'Admin' || user.role === 'restaurant_manager') && (
-          <Link to="/admin" onClick={onNavigate} className="font-medium text-primary-300 hover:underline">
-            Admin
-          </Link>
-        )}
-        <Link to="/my-orders" onClick={onNavigate} className="font-medium text-primary-300 hover:underline">
-          My Orders
-        </Link>
-        <span className="text-charcoal-100">Hi, {user.name.split(' ')[0]}</span>
-        <button
-          type="button"
-          onClick={() => {
-            void signOut()
-            onNavigate?.()
-          }}
-          className="font-medium text-primary-300 hover:underline"
-        >
-          Sign Out
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <Link to="/sign-in" onClick={onNavigate} className="text-sm font-medium text-primary-300 hover:underline">
-      Sign In
-    </Link>
-  )
-}
 
 export function Header() {
   const [restaurantName, setRestaurantName] = useState('The Restaurant')
@@ -117,26 +72,7 @@ export function Header() {
         </button>
       </div>
 
-      {isMenuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-charcoal-700 px-4 pb-4 text-sm font-medium md:hidden">
-          {NAV_LINKS.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.to === '/'}
-              className={({ isActive }) =>
-                `rounded-md px-3 py-2 ${isActive ? 'bg-charcoal-800 text-primary-300' : 'text-charcoal-50'}`
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {link.label}
-            </NavLink>
-          ))}
-          <div className="mt-2 border-t border-charcoal-700 px-3 pt-3">
-            <AuthSection onNavigate={() => setIsMenuOpen(false)} />
-          </div>
-        </nav>
-      )}
+      {isMenuOpen && <MobileNav onNavigate={() => setIsMenuOpen(false)} />}
     </header>
   )
 }

@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Container } from '../components/layout/Container'
-import { Field, inputClasses } from '../components/form/Field'
-import { formatPrice, getDiscountedPrice } from '../lib/format'
-import { FoodService, OrderService } from '../services'
-import { createOrderSchema } from '../validation/schemas'
-import type { Food, Order, OrderItem } from '../types'
+import { Container } from '../../components/layout/Container'
+import { Field, inputClasses } from '../../components/form/Field'
+import { formatPrice, getDiscountedPrice } from '../../lib/format'
+import { FoodService, OrderService } from '../../services'
+import { createOrderSchema } from '../../validation/schemas'
+import type { Food, Order, OrderItem } from '../../types'
+import { MenuSelector } from './MenuSelector'
+import { OrderConfirmation } from './OrderConfirmation'
 
 interface FormState {
   customer_name: string
   phone: string
+  location: string
   notes: string
 }
 
-const initialForm: FormState = { customer_name: '', phone: '', notes: '' }
+const initialForm: FormState = { customer_name: '', phone: '', location: '', notes: '' }
 
-type FormErrors = Partial<Record<'customer_name' | 'phone' | 'items', string>>
+type FormErrors = Partial<Record<'customer_name' | 'phone' | 'location' | 'items', string>>
 
 export function OrderPage() {
   const [foods, setFoods] = useState<Food[]>([])
@@ -80,21 +83,7 @@ export function OrderPage() {
   if (confirmedOrder) {
     return (
       <Container>
-        <div className="mx-auto max-w-lg rounded-lg border border-charcoal-700 bg-charcoal-800 p-8 text-center">
-          <h1 className="font-display text-2xl text-charcoal-50">Order Placed</h1>
-          <p className="mt-2 text-charcoal-100">
-            Thanks, {confirmedOrder.customer_name}. Your order total is{' '}
-            <span className="font-medium text-primary-200">{formatPrice(confirmedOrder.total)}</span>.
-          </p>
-          <p className="mt-4 text-sm text-primary-300">Status: {confirmedOrder.status}</p>
-          <button
-            type="button"
-            onClick={() => setConfirmedOrder(null)}
-            className="mt-6 rounded-md bg-primary-400 px-6 py-3 text-sm font-semibold text-charcoal-900 transition-colors hover:bg-primary-300"
-          >
-            Place Another Order
-          </button>
-        </div>
+        <OrderConfirmation order={confirmedOrder} onPlaceAnother={() => setConfirmedOrder(null)} />
       </Container>
     )
   }
@@ -105,29 +94,12 @@ export function OrderPage() {
       <p className="mt-2 max-w-2xl text-charcoal-100">Pick your dishes and we'll get cooking.</p>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6" noValidate>
-        <div className="flex flex-col gap-3">
-          {foods.map((food) => (
-            <div
-              key={food.id}
-              className="flex items-center justify-between gap-4 rounded-lg border border-charcoal-700 bg-charcoal-800 p-4"
-            >
-              <div>
-                <p className="font-medium text-charcoal-50">{food.name}</p>
-                <p className="text-sm text-charcoal-100">
-                  {formatPrice(getDiscountedPrice(food.price, food.discount_percentage))}
-                </p>
-              </div>
-              <input
-                type="number"
-                min={0}
-                value={quantities[food.id] ?? 0}
-                onChange={(event) => updateQuantity(food.id, Number(event.target.value))}
-                className={`${inputClasses} w-20 text-center`}
-              />
-            </div>
-          ))}
-        </div>
-        {errors.items && <p className="text-sm text-red-400">{errors.items}</p>}
+        <MenuSelector
+          foods={foods}
+          quantities={quantities}
+          itemsError={errors.items}
+          onQuantityChange={updateQuantity}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Name" error={errors.customer_name}>
@@ -148,6 +120,16 @@ export function OrderPage() {
             />
           </Field>
         </div>
+
+        <Field label="Delivery Location" error={errors.location}>
+          <input
+            type="text"
+            value={form.location}
+            onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
+            placeholder="Street address, building, or landmark"
+            className={inputClasses}
+          />
+        </Field>
 
         <Field label="Notes (optional)">
           <textarea
