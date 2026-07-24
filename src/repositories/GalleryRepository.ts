@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 import type { GalleryImage } from '../types'
 
 export interface CreateGalleryRow {
@@ -13,19 +14,19 @@ export class GalleryRepository {
       .from('gallery')
       .select('*')
       .order('created_at', { ascending: false })
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async findById(id: string): Promise<GalleryImage | null> {
     const { data, error } = await supabase.from('gallery').select('*').eq('id', id).maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async create(data: CreateGalleryRow): Promise<GalleryImage> {
     const { data: created, error } = await supabase.from('gallery').insert(data).select().single()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return created
   }
 
@@ -36,12 +37,12 @@ export class GalleryRepository {
       .eq('id', id)
       .select()
       .maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return updated
   }
 
   static async remove(id: string): Promise<void> {
     const { error } = await supabase.from('gallery').delete().eq('id', id)
-    if (error) throw error
+    if (error) throw toAppError(error)
   }
 }

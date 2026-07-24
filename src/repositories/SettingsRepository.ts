@@ -1,11 +1,12 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 import type { Settings } from '../types'
 
 /** Data-access layer for the single-row `settings` table. */
 export class SettingsRepository {
   static async find(): Promise<Settings> {
     const { data, error } = await supabase.from('settings').select('*').single()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
@@ -19,7 +20,7 @@ export class SettingsRepository {
       .eq('is_singleton', true)
       .select()
       .single()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return updated
   }
 }

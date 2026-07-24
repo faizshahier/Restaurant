@@ -4,6 +4,7 @@ import { Container } from '../components/layout/Container'
 import { Field, inputClasses } from '../components/form/Field'
 import { useAuth } from '../context/AuthContext'
 import { signInSchema, type SignInInput } from '../validation/schemas'
+import { toErrorMessage } from '../lib/errors'
 
 const initialFormState: SignInInput = { email: '', password: '' }
 
@@ -42,7 +43,7 @@ export function SignInPage() {
       await signIn(result.data.email, result.data.password)
       navigate('/')
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      setSubmitError(toErrorMessage(error, 'Something went wrong. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }

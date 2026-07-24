@@ -24,7 +24,10 @@ export function ContactPage() {
   const [settings, setSettings] = useState<Settings | null>(null)
 
   useEffect(() => {
-    SettingsService.getSettings().then(setSettings)
+    // Falls back to the placeholder contact details if this fails.
+    SettingsService.getSettings()
+      .then(setSettings)
+      .catch((err: unknown) => console.error('Failed to load settings', err))
   }, [])
 
   const socialEntries = settings

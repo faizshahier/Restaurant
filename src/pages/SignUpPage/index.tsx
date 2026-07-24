@@ -10,6 +10,7 @@ import {
 } from '../../validation/schemas'
 import { SignUpForm } from './SignUpForm'
 import { VerifyCodeForm } from './VerifyCodeForm'
+import { toErrorMessage } from '../../lib/errors'
 
 const initialFormState: SignUpInput = { name: '', email: '', password: '' }
 
@@ -61,7 +62,7 @@ export function SignUpPage() {
         navigate('/')
       }
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      setSubmitError(toErrorMessage(error, 'Something went wrong. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -89,7 +90,7 @@ export function SignUpPage() {
       await verifyEmailOtp(result.data.email, result.data.token)
       navigate('/')
     } catch (error) {
-      setVerifyError(error instanceof Error ? error.message : 'Invalid or expired code. Please try again.')
+      setVerifyError(toErrorMessage(error, 'Invalid or expired code. Please try again.'))
     } finally {
       setIsVerifying(false)
     }
@@ -103,7 +104,7 @@ export function SignUpPage() {
       await resendSignUpCode(pendingEmail)
       setResendMessage('A new code is on its way.')
     } catch (error) {
-      setVerifyError(error instanceof Error ? error.message : 'Could not resend the code. Please try again.')
+      setVerifyError(toErrorMessage(error, 'Could not resend the code. Please try again.'))
     }
   }
 

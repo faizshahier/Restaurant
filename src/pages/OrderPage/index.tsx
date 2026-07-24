@@ -7,6 +7,7 @@ import { createOrderSchema } from '../../validation/schemas'
 import type { Food, Order, OrderItem } from '../../types'
 import { MenuSelector } from './MenuSelector'
 import { OrderConfirmation } from './OrderConfirmation'
+import { toErrorMessage } from '../../lib/errors'
 
 interface FormState {
   customer_name: string
@@ -29,7 +30,12 @@ export function OrderPage() {
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
 
   useEffect(() => {
-    FoodService.getAvailableItems().then(setFoods)
+    FoodService.getAvailableItems()
+      .then(setFoods)
+      .catch((err: unknown) => {
+        console.error('Failed to load menu items', err)
+        setSubmitError("We couldn't load the menu. Please check your connection and try again.")
+      })
   }, [])
 
   const items: OrderItem[] = useMemo(
@@ -74,7 +80,7 @@ export function OrderPage() {
       setForm(initialForm)
       setQuantities({})
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      setSubmitError(toErrorMessage(error, 'Something went wrong. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }

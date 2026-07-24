@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 import type { Category } from '../types'
 
 export interface CreateCategoryRow {
@@ -9,19 +10,19 @@ export interface CreateCategoryRow {
 export class CategoryRepository {
   static async findAll(): Promise<Category[]> {
     const { data, error } = await supabase.from('categories').select('*').order('name')
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async findById(id: string): Promise<Category | null> {
     const { data, error } = await supabase.from('categories').select('*').eq('id', id).maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async create(data: CreateCategoryRow): Promise<Category> {
     const { data: created, error } = await supabase.from('categories').insert(data).select().single()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return created
   }
 
@@ -32,12 +33,12 @@ export class CategoryRepository {
       .eq('id', id)
       .select()
       .maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return updated
   }
 
   static async remove(id: string): Promise<void> {
     const { error } = await supabase.from('categories').delete().eq('id', id)
-    if (error) throw error
+    if (error) throw toAppError(error)
   }
 }

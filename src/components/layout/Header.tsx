@@ -16,11 +16,15 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
-    SettingsService.getSettings().then((settings) => {
-      setRestaurantName(settings.restaurant_name)
-      setLogo(settings.logo)
-      setIsOpenNow(isRestaurantOpenNow(settings.opening_hours))
-    })
+    // Keeps the default name and hides the open/closed badge if this fails,
+    // rather than throwing an unhandled rejection on every page load.
+    SettingsService.getSettings()
+      .then((settings) => {
+        setRestaurantName(settings.restaurant_name)
+        setLogo(settings.logo)
+        setIsOpenNow(isRestaurantOpenNow(settings.opening_hours))
+      })
+      .catch((err: unknown) => console.error('Failed to load settings', err))
   }, [])
 
   return (

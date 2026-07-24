@@ -32,7 +32,10 @@ export function AboutPage() {
   const [settings, setSettings] = useState<Settings | null>(null)
 
   useEffect(() => {
-    SettingsService.getSettings().then(setSettings)
+    // Falls back to the default restaurant name/details if this fails.
+    SettingsService.getSettings()
+      .then(setSettings)
+      .catch((err: unknown) => console.error('Failed to load settings', err))
   }, [])
 
   const restaurantName = settings?.restaurant_name ?? 'The Restaurant'

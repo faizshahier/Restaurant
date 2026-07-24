@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 import type { Order, OrderItem, OrderStatus } from '../types'
 
 export interface OrderFilters {
@@ -49,13 +50,13 @@ export class OrderRepository {
       query = query.eq('status', filters.status)
     }
     const { data, error } = await query
-    if (error) throw error
+    if (error) throw toAppError(error)
     return (data as unknown as OrderRow[]).map(mapOrderRow)
   }
 
   static async findById(id: string): Promise<Order | null> {
     const { data, error } = await supabase.from('orders').select(ORDER_SELECT).eq('id', id).maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data ? mapOrderRow(data as unknown as OrderRow) : null
   }
 
@@ -75,19 +76,19 @@ export class OrderRepository {
         p_items: data.items,
       })
       .single()
-    if (error) throw error
+    if (error) throw toAppError(error)
 
     return { ...(order as Omit<Order, 'items'>), items: data.items }
   }
 
   static async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id)
-    if (error) throw error
+    if (error) throw toAppError(error)
     return OrderRepository.findById(id)
   }
 
   static async remove(id: string): Promise<void> {
     const { error } = await supabase.from('orders').delete().eq('id', id)
-    if (error) throw error
+    if (error) throw toAppError(error)
   }
 }

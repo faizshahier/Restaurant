@@ -14,8 +14,13 @@ export function HomePage() {
   const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
-    FoodService.getAvailableItems().then((foods) => setFeaturedFoods(foods.slice(0, MAX_FEATURED_ITEMS)))
-    CategoryService.getAllCategories().then(setCategories)
+    // The featured section simply renders nothing if these fail.
+    FoodService.getAvailableItems()
+      .then((foods) => setFeaturedFoods(foods.slice(0, MAX_FEATURED_ITEMS)))
+      .catch((err: unknown) => console.error('Failed to load featured dishes', err))
+    CategoryService.getAllCategories()
+      .then(setCategories)
+      .catch((err: unknown) => console.error('Failed to load categories', err))
   }, [])
 
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]))

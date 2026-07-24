@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 
 /**
  * Manages file uploads (menu photos, gallery images) via Supabase Storage.
@@ -13,7 +14,7 @@ import { supabase } from '../lib/supabaseClient'
 export class StorageService {
   static async uploadFile(bucket: string, path: string, file: File): Promise<string> {
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
-    if (error) throw error
+    if (error) throw toAppError(error)
     const publicUrl = await StorageService.getPublicUrl(bucket, path)
     if (!publicUrl) throw new Error(`Uploaded ${path} but could not resolve its public URL.`)
     return publicUrl
@@ -26,6 +27,6 @@ export class StorageService {
 
   static async deleteFile(bucket: string, path: string): Promise<void> {
     const { error } = await supabase.storage.from(bucket).remove([path])
-    if (error) throw error
+    if (error) throw toAppError(error)
   }
 }

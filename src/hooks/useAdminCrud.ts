@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { ZodType } from 'zod'
+import { toErrorMessage } from '../lib/errors'
 
 interface UseAdminCrudOptions<TItem, TForm> {
   emptyForm: TForm
@@ -33,12 +34,22 @@ export function useAdminCrud<TItem, TForm extends object>({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
-    list().then((all) => {
-      setItems(all)
-      setIsLoading(false)
-    })
+    list()
+      .then((all) => {
+        setItems(all)
+        setIsLoading(false)
+      })
+      .catch((err: unknown) => {
+        // Without this the page stays on its loading placeholder forever when the
+        // request fails, giving no indication anything went wrong.
+        console.error('Failed to load records', err)
+        setLoadError("We couldn't load this data. Please check your connection and try again.")
+        setIsLoading(false)
+      })
     // Runs once on mount; `list` is a static service reference passed in by the caller.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -78,6 +89,7 @@ export function useAdminCrud<TItem, TForm extends object>({
     }
 
     setErrors({})
+    setSubmitError(null)
     setIsSubmitting(true)
     try {
       if (editingId) {
@@ -87,6 +99,11 @@ export function useAdminCrud<TItem, TForm extends object>({
       }
       await refresh()
       cancelEdit()
+    } catch (err: unknown) {
+      // Previously only try/finally: a failed save reset the button but showed
+      // nothing, so the row silently never appeared.
+      console.error('Failed to save record', err)
+      setSubmitError(toErrorMessage(err, 'Could not save. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -99,6 +116,8 @@ export function useAdminCrud<TItem, TForm extends object>({
     editingId,
     isSubmitting,
     isLoading,
+    loadError,
+    submitError,
     updateField,
     startEdit,
     cancelEdit,

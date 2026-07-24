@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 import type { Food } from '../types'
 
 export interface CreateFoodRow {
@@ -15,13 +16,13 @@ export interface CreateFoodRow {
 export class FoodRepository {
   static async findAll(): Promise<Food[]> {
     const { data, error } = await supabase.from('foods').select('*').order('name')
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async findById(id: string): Promise<Food | null> {
     const { data, error } = await supabase.from('foods').select('*').eq('id', id).maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
@@ -31,13 +32,13 @@ export class FoodRepository {
       .select('*')
       .eq('category_id', categoryId)
       .order('name')
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async create(data: CreateFoodRow): Promise<Food> {
     const { data: created, error } = await supabase.from('foods').insert(data).select().single()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return created
   }
 
@@ -48,12 +49,12 @@ export class FoodRepository {
       .eq('id', id)
       .select()
       .maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return updated
   }
 
   static async remove(id: string): Promise<void> {
     const { error } = await supabase.from('foods').delete().eq('id', id)
-    if (error) throw error
+    if (error) throw toAppError(error)
   }
 }

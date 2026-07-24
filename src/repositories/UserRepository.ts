@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { toAppError } from '../lib/errors'
 import type { User } from '../types'
 
 export interface UpdateUserRow {
@@ -20,19 +21,19 @@ export interface UpdateUserRow {
 export class UserRepository {
   static async findAll(): Promise<User[]> {
     const { data, error } = await supabase.from('users').select('*')
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async findById(id: string): Promise<User | null> {
     const { data, error } = await supabase.from('users').select('*').eq('id', id).maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
   static async findByEmail(email: string): Promise<User | null> {
     const { data, error } = await supabase.from('users').select('*').eq('email', email).maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return data
   }
 
@@ -43,12 +44,12 @@ export class UserRepository {
       .eq('id', id)
       .select()
       .maybeSingle()
-    if (error) throw error
+    if (error) throw toAppError(error)
     return updated
   }
 
   static async remove(id: string): Promise<void> {
     const { error } = await supabase.from('users').delete().eq('id', id)
-    if (error) throw error
+    if (error) throw toAppError(error)
   }
 }

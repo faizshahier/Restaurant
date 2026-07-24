@@ -33,7 +33,9 @@ export function AdminFoodsPage() {
   const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
-    CategoryService.getAllCategories().then(setCategories)
+    CategoryService.getAllCategories()
+      .then(setCategories)
+      .catch((err: unknown) => console.error('Failed to load categories', err))
   }, [])
 
   const crud = useAdminCrud<Food, CreateFoodInput>({

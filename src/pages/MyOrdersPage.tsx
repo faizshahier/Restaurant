@@ -15,15 +15,22 @@ const statusBadgeClasses: Record<OrderStatus, string> = {
 export function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // No filter needed: RLS already scopes this to the signed-in user's own orders
     // (or everything, for staff) — the same OrderService.listOrders() used in the
     // admin dashboard returns the right rows for whoever is asking.
-    OrderService.listOrders().then((allOrders) => {
-      setOrders(allOrders)
-      setIsLoading(false)
-    })
+    OrderService.listOrders()
+      .then((allOrders) => {
+        setOrders(allOrders)
+        setIsLoading(false)
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load orders', err)
+        setError("We couldn't load your orders. Please check your connection and try again.")
+        setIsLoading(false)
+      })
   }, [])
 
   return (
@@ -33,6 +40,8 @@ export function MyOrdersPage() {
 
       {isLoading ? (
         <p className="mt-10 text-charcoal-100">Loading your orders…</p>
+      ) : error ? (
+        <p className="mt-10 text-red-400">{error}</p>
       ) : orders.length === 0 ? (
         <p className="mt-10 text-charcoal-100">
           You haven't placed any orders yet.{' '}

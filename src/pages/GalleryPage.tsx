@@ -6,12 +6,19 @@ import type { GalleryImage } from '../types'
 export function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    GalleryService.getAllImages().then((allImages) => {
-      setImages(allImages)
-      setIsLoading(false)
-    })
+    GalleryService.getAllImages()
+      .then((allImages) => {
+        setImages(allImages)
+        setIsLoading(false)
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load gallery', err)
+        setError("We couldn't load the gallery. Please check your connection and try again.")
+        setIsLoading(false)
+      })
   }, [])
 
   return (
@@ -21,6 +28,8 @@ export function GalleryPage() {
 
       {isLoading ? (
         <p className="mt-10 text-charcoal-100">Loading gallery…</p>
+      ) : error ? (
+        <p className="mt-10 text-red-400">{error}</p>
       ) : images.length === 0 ? (
         <p className="mt-10 text-charcoal-100">No photos have been added yet.</p>
       ) : (

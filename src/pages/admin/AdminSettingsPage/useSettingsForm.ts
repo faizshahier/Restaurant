@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { SettingsService } from '../../../services'
 import { updateSettingsSchema } from '../../../validation/schemas'
 import type { Settings } from '../../../types'
+import { toErrorMessage } from '../../../lib/errors'
 
 export interface SettingsFormState {
   restaurant_name: string
@@ -43,7 +44,9 @@ export function useSettingsForm() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
-    SettingsService.getSettings().then((settings) => setForm(toFormState(settings)))
+    SettingsService.getSettings()
+      .then((settings) => setForm(toFormState(settings)))
+      .catch((err: unknown) => console.error('Failed to load settings', err))
   }, [])
 
   function updateField<K extends keyof SettingsFormState>(field: K, value: SettingsFormState[K]) {
@@ -99,7 +102,7 @@ export function useSettingsForm() {
       setForm(toFormState(updated))
       setIsSaved(true)
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      setSubmitError(toErrorMessage(error, 'Something went wrong. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }

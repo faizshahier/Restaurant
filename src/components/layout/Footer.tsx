@@ -13,7 +13,10 @@ export function Footer() {
   const [settings, setSettings] = useState<Settings | null>(null)
 
   useEffect(() => {
-    SettingsService.getSettings().then(setSettings)
+    // Falls back to the default footer content if this fails.
+    SettingsService.getSettings()
+      .then(setSettings)
+      .catch((err: unknown) => console.error('Failed to load settings', err))
   }, [])
 
   const socialEntries = settings

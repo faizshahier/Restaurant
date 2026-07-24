@@ -5,7 +5,7 @@ import { StatCard } from './StatCard'
 import { TopSellersChart } from './TopSellersChart'
 
 export function AdminAnalyticsPage() {
-  const { isLoading, todayRevenue, weekRevenue, monthRevenue, topSellers } = useOrderAnalytics()
+  const { isLoading, error, todayRevenue, weekRevenue, monthRevenue, topSellers } = useOrderAnalytics()
 
   return (
     <Container>
@@ -14,6 +14,8 @@ export function AdminAnalyticsPage() {
 
       {isLoading ? (
         <p className="mt-10 text-charcoal-100">Loading analytics…</p>
+      ) : error ? (
+        <p className="mt-10 text-red-400">{error}</p>
       ) : (
         <>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">

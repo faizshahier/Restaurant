@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext'
 import { UserService } from '../../../services'
 import type { PublicUser, UserRole } from '../../../types'
 import { UsersTable } from './UsersTable'
+import { toErrorMessage } from '../../../lib/errors'
 
 export function AdminUsersPage() {
   const { user: currentUser } = useAuth()
@@ -13,10 +14,16 @@ export function AdminUsersPage() {
   const [pendingId, setPendingId] = useState<string | null>(null)
 
   useEffect(() => {
-    UserService.listUsers().then((allUsers) => {
-      setUsers(allUsers)
-      setIsLoading(false)
-    })
+    UserService.listUsers()
+      .then((allUsers) => {
+        setUsers(allUsers)
+        setIsLoading(false)
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load users', err)
+        setError("We couldn't load users. Please check your connection and try again.")
+        setIsLoading(false)
+      })
   }, [])
 
   async function refreshUsers() {
@@ -40,7 +47,7 @@ export function AdminUsersPage() {
       await UserService.updateProfile(targetUser.id, { role })
       await refreshUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not update the role. Please try again.')
+      setError(toErrorMessage(err, 'Could not update the role. Please try again.'))
     } finally {
       setPendingId(null)
     }
@@ -59,7 +66,7 @@ export function AdminUsersPage() {
       await UserService.deleteUser(targetUser.id)
       await refreshUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not delete this user. Please try again.')
+      setError(toErrorMessage(err, 'Could not delete this user. Please try again.'))
     } finally {
       setPendingId(null)
     }

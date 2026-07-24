@@ -26,12 +26,19 @@ export interface TopSeller {
 export function useOrderAnalytics() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    OrderService.listOrders().then((all) => {
-      setOrders(all)
-      setIsLoading(false)
-    })
+    OrderService.listOrders()
+      .then((all) => {
+        setOrders(all)
+        setIsLoading(false)
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load analytics', err)
+        setError("We couldn't load analytics. Please check your connection and try again.")
+        setIsLoading(false)
+      })
   }, [])
 
   // Cancelled orders never generate revenue and shouldn't count toward sales volume.
@@ -70,5 +77,5 @@ export function useOrderAnalytics() {
       .slice(0, 5)
   }, [billableOrders])
 
-  return { isLoading, todayRevenue, weekRevenue, monthRevenue, topSellers }
+  return { isLoading, error, todayRevenue, weekRevenue, monthRevenue, topSellers }
 }

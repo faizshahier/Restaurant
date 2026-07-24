@@ -3,6 +3,21 @@ import { UserRepository } from '../repositories'
 import { signUpSchema, verifyEmailOtpSchema } from '../validation/schemas'
 import type { PublicUser } from '../types'
 
+/**
+ * Supabase surfaces an unreachable backend as a bare "Failed to fetch", which tells the
+ * person signing in nothing useful. Anything that never reached the server means the
+ * project URL is wrong/unreachable or the network is down — not bad credentials.
+ */
+function toAuthErrorMessage(message: string): string {
+  const isNetworkFailure =
+    /failed to fetch|networkerror|load failed|fetch failed|err_name_not_resolved/i.test(message)
+
+  return isNetworkFailure
+    ? "Can't reach the authentication server. Check your internet connection, and that " +
+        'VITE_SUPABASE_URL in .env points at a Supabase project that still exists.'
+    : message
+}
+
 async function fetchUserProfile(userId: string): Promise<PublicUser> {
   const profile = await UserRepository.findById(userId)
   if (!profile) {
@@ -22,7 +37,7 @@ export type SignUpResult =
 export class AuthService {
   static async signIn(email: string, password: string): Promise<PublicUser> {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(toAuthErrorMessage(error.message))
     if (!data.user) throw new Error('Invalid email or password')
     return fetchUserProfile(data.user.id)
   }
@@ -34,7 +49,7 @@ export class AuthService {
       password: parsed.password,
       options: { data: { name: parsed.name } },
     })
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(toAuthErrorMessage(error.message))
     if (!data.user) throw new Error('Sign up failed. Please try again.')
 
     if (!data.session) {
@@ -61,7 +76,7 @@ export class AuthService {
       token: parsed.token,
       type: 'signup',
     })
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(toAuthErrorMessage(error.message))
     if (!data.user) throw new Error('Verification failed. Please try again.')
     return fetchUserProfile(data.user.id)
   }
@@ -69,12 +84,12 @@ export class AuthService {
   /** Re-sends the sign-up verification code (rate-limited by Supabase). */
   static async resendSignUpCode(email: string): Promise<void> {
     const { error } = await supabase.auth.resend({ type: 'signup', email })
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(toAuthErrorMessage(error.message))
   }
 
   static async signOut(): Promise<void> {
     const { error } = await supabase.auth.signOut()
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(toAuthErrorMessage(error.message))
   }
 
   static async getCurrentUser(): Promise<PublicUser | null> {
@@ -92,7 +107,14 @@ export class AuthService {
         callback(null)
         return
       }
-      UserRepository.findById(session.user.id).then(callback)
+      // If the profile lookup fails, report signed-out rather than leaving the app
+      // stuck in its initial loading state on an unhandled rejection.
+      UserRepository.findById(session.user.id)
+        .then(callback)
+        .catch((err: unknown) => {
+          console.error('Failed to load user profile', err)
+          callback(null)
+        })
     })
     return () => subscription.unsubscribe()
   }

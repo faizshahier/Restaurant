@@ -19,15 +19,22 @@ export function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(ALL_CATEGORIES)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([FoodService.getAvailableItems(), CategoryService.getAllCategories()]).then(
-      ([availableFoods, allCategories]) => {
+    Promise.all([FoodService.getAvailableItems(), CategoryService.getAllCategories()])
+      .then(([availableFoods, allCategories]) => {
         setFoods(availableFoods)
         setCategories(allCategories)
         setIsLoading(false)
-      },
-    )
+      })
+      .catch((err: unknown) => {
+        // Without this the page sits on "Loading menu…" forever whenever the
+        // request fails (offline, bad Supabase config, project unreachable).
+        console.error('Failed to load menu', err)
+        setError("We couldn't load the menu. Please check your connection and try again.")
+        setIsLoading(false)
+      })
   }, [])
 
   const categoryNameById = useMemo(
@@ -72,6 +79,8 @@ export function MenuPage() {
 
       {isLoading ? (
         <p className="mt-10 text-charcoal-100">Loading menu…</p>
+      ) : error ? (
+        <p className="mt-10 text-red-400">{error}</p>
       ) : visibleFoods.length === 0 ? (
         <p className="mt-10 text-charcoal-100">No dishes in this category yet.</p>
       ) : (
