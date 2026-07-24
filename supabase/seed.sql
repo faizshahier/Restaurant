@@ -14,7 +14,10 @@
 -- EMPTY so you can fill in your own details later. There is no website / cuisine
 -- / services / features / description column in this schema, so those are not set.
 --
--- Images use royalty-free placeholders from https://picsum.photos.
+-- Images use royalty-free placeholder services:
+--   * https://placehold.co  — restaurant logo and labeled food images (each
+--                             image shows the dish name, so the menu is readable)
+--   * https://picsum.photos  — gallery ambiance photos
 --
 -- Safe to re-run: categories/foods/gallery inserts are guarded with NOT EXISTS,
 -- and demo orders are deleted (by their [DEMO] marker) before re-insertion.
@@ -217,6 +220,30 @@ begin
     update public.orders set total = computed_total where id = new_id;
   end loop;
 end $$;
+
+-- -----------------------------------------------------------------------------
+-- Photos (placehold.co)
+--
+-- Restaurant logo + a labeled placeholder image for every food. These run as
+-- UPDATEs (not just in the INSERT above) so the photos apply whether the tables
+-- were just seeded or already had rows. placehold.co renders the given ?text=
+-- label onto the image, so each menu card shows its dish name. Special chars in
+-- names are made URL-safe: '&' -> 'and', parentheses removed, spaces -> '+'.
+-- -----------------------------------------------------------------------------
+update public.settings
+set logo = 'https://placehold.co/200x200/orange/white?text=LOGO'
+where is_singleton = true;
+
+update public.foods
+set image =
+  'https://placehold.co/600x400/orange/white?text=' ||
+  replace(
+    replace(
+      replace(
+        replace(name, '&', 'and'),
+        '(', ''),
+      ')', ''),
+    ' ', '+');
 
 commit;
 
