@@ -14,10 +14,10 @@
 -- EMPTY so you can fill in your own details later. There is no website / cuisine
 -- / services / features / description column in this schema, so those are not set.
 --
--- Images use royalty-free placeholder services:
---   * https://placehold.co  — restaurant logo and labeled food images (each
---                             image shows the dish name, so the menu is readable)
---   * https://picsum.photos  — gallery ambiance photos
+-- Images are real food photographs from TheMealDB (https://www.themealdb.com),
+-- a free open recipe API. Each URL was verified to return HTTP 200 with an image
+-- content-type, and each dish is matched to a photo of that actual dish. No
+-- copyrighted restaurant photography is used.
 --
 -- Safe to re-run: categories/foods/gallery inserts are guarded with NOT EXISTS,
 -- and demo orders are deleted (by their [DEMO] marker) before re-insertion.
@@ -48,13 +48,14 @@ where not exists (
 );
 
 -- -----------------------------------------------------------------------------
--- Foods  (image = picsum placeholder; a couple are marked unavailable on purpose
--- so the "out of stock" UI has something to show)
+-- Foods  (image is set to '' here and filled in with a real dish photo by the
+-- "Food photos" UPDATE near the end of this file; a couple of items are marked
+-- unavailable on purpose so the "out of stock" UI has something to show)
 -- -----------------------------------------------------------------------------
 insert into public.foods (name, description, price, discount_percentage, image, category_id, available)
 select
   f.name, f.description, f.price, f.discount_percentage,
-  'https://picsum.photos/seed/' || f.seed || '/600/400',
+  '',
   c.id, f.available
 from (values
   -- name, description, price, discount, image-seed, category, available
@@ -118,14 +119,14 @@ where not exists (
 insert into public.gallery (image_url, title)
 select v.url, v.title
 from (values
-  ('https://picsum.photos/seed/gallery-dish-1/800/600',    '[DEMO] Signature Dish'),
-  ('https://picsum.photos/seed/gallery-interior-1/800/600','[DEMO] Dining Area'),
-  ('https://picsum.photos/seed/gallery-grill-1/800/600',   '[DEMO] From the Grill'),
-  ('https://picsum.photos/seed/gallery-dessert-1/800/600', '[DEMO] Dessert Selection'),
-  ('https://picsum.photos/seed/gallery-drinks-1/800/600',  '[DEMO] Fresh Drinks'),
-  ('https://picsum.photos/seed/gallery-chef-1/800/600',    '[DEMO] Chef at Work'),
-  ('https://picsum.photos/seed/gallery-table-1/800/600',   '[DEMO] Table Setting'),
-  ('https://picsum.photos/seed/gallery-pizza-1/800/600',   '[DEMO] Wood-Fired Pizza')
+  ('https://www.themealdb.com/images/media/meals/dxs5t71782678369.jpg', '[DEMO] Fresh From the Sea'),
+  ('https://www.themealdb.com/images/media/meals/13fg4j1764441982.jpg', '[DEMO] Chargrilled Classics'),
+  ('https://www.themealdb.com/images/media/meals/a4kgf21763075288.jpg', '[DEMO] Something Sweet'),
+  ('https://www.themealdb.com/images/media/meals/9ya6o71780262651.jpg', '[DEMO] House Favourites'),
+  ('https://www.themealdb.com/images/media/meals/3m8yae1763257951.jpg', '[DEMO] Garden Plates'),
+  ('https://www.themealdb.com/images/media/meals/uquqtu1511178042.jpg', '[DEMO] Handmade Pasta'),
+  ('https://www.themealdb.com/images/media/meals/04axct1763793018.jpg', '[DEMO] Slow-Cooked Specials'),
+  ('https://www.themealdb.com/images/media/meals/grhn401765687086.jpg', '[DEMO] Sides to Share')
 ) as v(url, title)
 where not exists (
   select 1 from public.gallery g where g.title = v.title
@@ -157,9 +158,18 @@ values (
   true
 )
 on conflict (is_singleton) do update set
-  delivery_zone = excluded.delivery_zone,
-  opening_hours = excluded.opening_hours,
-  social_links  = excluded.social_links;
+  -- The identity fields are force-cleared here, not just on first insert. The
+  -- schema.sql sample row ships invented contact details ("+1 (555) 010-0000",
+  -- "hello@example.com", "123 Main Street, Your City"); those must not survive,
+  -- so re-running this seed always resets them to empty for the owner to fill in.
+  restaurant_name = '',
+  logo            = '',
+  phone           = '',
+  email           = '',
+  address         = '',
+  delivery_zone   = excluded.delivery_zone,
+  opening_hours   = excluded.opening_hours,
+  social_links    = excluded.social_links;
 
 -- -----------------------------------------------------------------------------
 -- Orders + order_items  (this is what powers the admin dashboard / analytics —
@@ -222,28 +232,60 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
--- Photos (placehold.co)
+-- Food photos (TheMealDB — real photographs)
 --
--- Restaurant logo + a labeled placeholder image for every food. These run as
--- UPDATEs (not just in the INSERT above) so the photos apply whether the tables
--- were just seeded or already had rows. placehold.co renders the given ?text=
--- label onto the image, so each menu card shows its dish name. Special chars in
--- names are made URL-safe: '&' -> 'and', parentheses removed, spaces -> '+'.
+-- A real photo of the actual dish for every menu item. Runs as an UPDATE (not
+-- just in the INSERT above) so photos apply whether the table was just seeded or
+-- already had rows — matched on name, so re-running refreshes existing rows.
+--
+-- Note: the restaurant LOGO is deliberately NOT set here. It is an identity field
+-- and stays empty (see the settings block above) for the owner to supply.
 -- -----------------------------------------------------------------------------
-update public.settings
-set logo = 'https://placehold.co/200x200/orange/white?text=LOGO'
-where is_singleton = true;
-
-update public.foods
-set image =
-  'https://placehold.co/600x400/orange/white?text=' ||
-  replace(
-    replace(
-      replace(
-        replace(name, '&', 'and'),
-        '(', ''),
-      ')', ''),
-    ' ', '+');
+update public.foods as f
+set image = v.url
+from (values
+  ('Margherita Pizza', 'https://www.themealdb.com/images/media/meals/lrfdwz1764438393.jpg'),
+  ('Pepperoni Pizza', 'https://www.themealdb.com/images/media/meals/wf49qs1763075222.jpg'),
+  ('BBQ Chicken Pizza', 'https://www.themealdb.com/images/media/meals/x0lk931587671540.jpg'),
+  ('Veggie Supreme Pizza', 'https://www.themealdb.com/images/media/meals/iuws3q1783801530.jpg'),
+  ('Four Cheese Pizza', 'https://www.themealdb.com/images/media/meals/jyvy8u1783800448.jpg'),
+  ('Classic Cheeseburger', 'https://www.themealdb.com/images/media/meals/lgmnff1763789847.jpg'),
+  ('Double Bacon Burger', 'https://www.themealdb.com/images/media/meals/44bzep1761848278.jpg'),
+  ('Crispy Chicken Burger', 'https://www.themealdb.com/images/media/meals/k420tj1585565244.jpg'),
+  ('Veggie Burger', 'https://www.themealdb.com/images/media/meals/vdwloy1713225718.jpg'),
+  ('Spicy Jalapeno Burger', 'https://www.themealdb.com/images/media/meals/8rfd4q1764112993.jpg'),
+  ('Spaghetti Bolognese', 'https://www.themealdb.com/images/media/meals/5fu4ew1760524857.jpg'),
+  ('Fettuccine Alfredo', 'https://www.themealdb.com/images/media/meals/0jv5gx1661040802.jpg'),
+  ('Penne Arrabbiata', 'https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg'),
+  ('Lasagna', 'https://www.themealdb.com/images/media/meals/rvxxuy1468312893.jpg'),
+  ('Creamy Pesto Pasta', 'https://www.themealdb.com/images/media/meals/usywpp1511189717.jpg'),
+  ('BBQ Ribs (Half Rack)', 'https://www.themealdb.com/images/media/meals/xusqvw1511638311.jpg'),
+  ('Grilled Chicken Platter', 'https://www.themealdb.com/images/media/meals/020z181619788503.jpg'),
+  ('Smoked Beef Brisket', 'https://www.themealdb.com/images/media/meals/ursuup1487348423.jpg'),
+  ('BBQ Wings (8 pcs)', 'https://www.themealdb.com/images/media/meals/feh9k21784665694.jpg'),
+  ('Chicken Biryani', 'https://www.themealdb.com/images/media/meals/xrttsx1487339558.jpg'),
+  ('Vegetable Fried Rice', 'https://www.themealdb.com/images/media/meals/5r5rvx1763287943.jpg'),
+  ('Beef Pilaf', 'https://www.themealdb.com/images/media/meals/kos9av1699014767.jpg'),
+  ('Egg Fried Rice', 'https://www.themealdb.com/images/media/meals/j8c1d51782772399.jpg'),
+  ('Grilled Chicken Sandwich', 'https://www.themealdb.com/images/media/meals/djdg8l1784578885.jpg'),
+  ('Club Sandwich', 'https://www.themealdb.com/images/media/meals/j80gmw1764372176.jpg'),
+  ('Steak & Cheese Sub', 'https://www.themealdb.com/images/media/meals/vussxq1511882648.jpg'),
+  ('Falafel Wrap', 'https://www.themealdb.com/images/media/meals/prrirc1763781360.jpg'),
+  ('Caesar Salad', 'https://www.themealdb.com/images/media/meals/7ytdtz1784833420.jpg'),
+  ('Greek Salad', 'https://www.themealdb.com/images/media/meals/k29viq1585565980.jpg'),
+  ('Garden Fresh Salad', 'https://www.themealdb.com/images/media/meals/bqx8mc1782684286.jpg'),
+  ('Grilled Chicken Salad', 'https://www.themealdb.com/images/media/meals/ji3mho1782499823.jpg'),
+  ('Chocolate Lava Cake', 'https://www.themealdb.com/images/media/meals/qxutws1486978099.jpg'),
+  ('New York Cheesecake', 'https://www.themealdb.com/images/media/meals/swttys1511385853.jpg'),
+  ('Tiramisu', 'https://www.themealdb.com/images/media/meals/wkhg581762773124.jpg'),
+  ('Vanilla Ice Cream', 'https://www.themealdb.com/images/media/meals/1xscby1764790242.jpg'),
+  ('Fresh Orange Juice', 'https://www.themealdb.com/images/media/meals/y4jpgq1560459207.jpg'),
+  ('Iced Lemon Tea', 'https://www.themealdb.com/images/media/meals/tqtywx1468317395.jpg'),
+  ('Cola (Can)', 'https://www.themealdb.com/images/media/meals/9aia021779646058.jpg'),
+  ('Mineral Water', 'https://www.themealdb.com/images/media/meals/nmxec11782498644.jpg'),
+  ('Mango Smoothie', 'https://www.themealdb.com/images/media/meals/pjbaq11784731571.jpg')
+) as v(name, url)
+where f.name = v.name;
 
 commit;
 
