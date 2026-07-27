@@ -1,8 +1,10 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Segoe UI', system-ui, Roboto, sans-serif;
-  --font-display: Georgia, 'Times New Roman', serif;
+  /* Body / UI: Inter for sharp, modern readability. */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, Roboto, sans-serif;
+  /* Headings / logo / food names: Playfair Display for a fine-dining, luxury feel. */
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
 
   /*
    * Brand — Primary
@@ -72,5 +74,17 @@
 @layer base {
   body {
     @apply bg-charcoal-900 text-charcoal-50 font-sans antialiased;
+  }
+
+  /* Any bare heading defaults to the display serif (Playfair Display). Components
+     that already use the `font-display` utility keep working; this just covers
+     headings that don't set it explicitly. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
   }
 }
