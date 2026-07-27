@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
-import { toAppError } from '../lib/errors'
+import { toAppError, assertRowReturned } from '../lib/errors'
 import type { GalleryImage } from '../types'
 
 export interface CreateGalleryRow {
@@ -38,7 +38,7 @@ export class GalleryRepository {
       .select()
       .maybeSingle()
     if (error) throw toAppError(error)
-    return updated
+    return assertRowReturned(updated, 'update this gallery image')
   }
 
   static async remove(id: string): Promise<void> {

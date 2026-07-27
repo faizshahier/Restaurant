@@ -41,3 +41,22 @@ export function toErrorMessage(error: unknown, fallback = 'Something went wrong.
   const message = toAppError(error).message
   return message === 'An unexpected error occurred.' ? fallback : message
 }
+
+/**
+ * Guards against a silent no-op write. A PostgREST update/delete filtered out by a
+ * Row-Level Security policy affects zero rows and returns HTTP 200 with an empty
+ * body — NOT an error. With `.maybeSingle()` that surfaces as `null`, so a save
+ * that changed nothing looks successful and the UI just re-displays the old value.
+ *
+ * Call this on the result of an update-by-id: if it's null, the row either does
+ * not exist or the current user lacks permission (e.g. not signed in as staff).
+ */
+export function assertRowReturned<T>(row: T | null, action = 'update this record'): T {
+  if (row == null) {
+    throw new Error(
+      `Couldn't ${action}. The change did not save — the record may no longer exist, or you ` +
+        'do not have permission (you may need to be signed in as an admin or staff member).',
+    )
+  }
+  return row
+}

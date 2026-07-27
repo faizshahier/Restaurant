@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
-import { toAppError } from '../lib/errors'
+import { toAppError, assertRowReturned } from '../lib/errors'
 import type { Category } from '../types'
 
 export interface CreateCategoryRow {
@@ -34,7 +34,7 @@ export class CategoryRepository {
       .select()
       .maybeSingle()
     if (error) throw toAppError(error)
-    return updated
+    return assertRowReturned(updated, 'update this category')
   }
 
   static async remove(id: string): Promise<void> {

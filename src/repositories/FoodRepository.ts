@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
-import { toAppError } from '../lib/errors'
+import { toAppError, assertRowReturned } from '../lib/errors'
 import type { Food } from '../types'
 
 export interface CreateFoodRow {
@@ -50,7 +50,10 @@ export class FoodRepository {
       .select()
       .maybeSingle()
     if (error) throw toAppError(error)
-    return updated
+    // A null result here means the update matched no row — usually RLS blocking a
+    // non-staff user, which PostgREST reports as success with an empty body. Fail
+    // loudly instead of letting the UI re-show the unchanged value as if it saved.
+    return assertRowReturned(updated, 'update this food')
   }
 
   static async remove(id: string): Promise<void> {
