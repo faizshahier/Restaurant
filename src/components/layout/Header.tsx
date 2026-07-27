@@ -30,12 +30,21 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-charcoal-700 bg-charcoal-900/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <NavLink
-          to="/"
-          className="flex items-center gap-2 font-display text-xl font-semibold tracking-wide text-primary-200"
-        >
-          {logo && <img src={logo} alt="" className="h-8 w-8 rounded-full object-cover" />}
-          {restaurantName}
+        <NavLink to="/" className="flex items-center gap-3">
+          {logo ? (
+            // object-contain (not cover) shows the whole logo without cropping; the
+            // white chip keeps a light-background logo looking intentional on the dark
+            // header. The wordmark is in the logo, so the text name is not repeated.
+            <img
+              src={logo}
+              alt={restaurantName || 'Restaurant logo'}
+              className="h-11 w-auto rounded-md bg-white object-contain p-1"
+            />
+          ) : (
+            <span className="font-display text-xl font-semibold tracking-wide text-primary-200">
+              {restaurantName || 'The Restaurant'}
+            </span>
+          )}
           {isOpenNow !== null && (
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
