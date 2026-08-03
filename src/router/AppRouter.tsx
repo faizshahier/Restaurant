@@ -41,53 +41,56 @@ const router = createBrowserRouter([
           </RequireRole>
         ),
       },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+  // The dashboard sits beside the public layout rather than inside it, so the public
+  // header, navigation, and footer never render within the admin area. The URLs and
+  // the role guards are unchanged: /admin/orders, /admin/foods, and so on.
+  {
+    path: '/admin',
+    element: (
+      <RequireRole roles={['Admin', 'restaurant_manager']}>
+        <AdminLayout />
+      </RequireRole>
+    ),
+    children: [
+      { index: true, element: <Navigate to="orders" replace /> },
+      { path: 'orders', element: <AdminOrdersPage /> },
+      { path: 'foods', element: <AdminFoodsPage /> },
+      { path: 'analytics', element: <AdminAnalyticsPage /> },
       {
-        path: 'admin',
+        path: 'categories',
         element: (
-          <RequireRole roles={['Admin', 'restaurant_manager']}>
-            <AdminLayout />
+          <RequireRole roles={['Admin']}>
+            <AdminCategoriesPage />
           </RequireRole>
         ),
-        children: [
-          { index: true, element: <Navigate to="orders" replace /> },
-          { path: 'orders', element: <AdminOrdersPage /> },
-          { path: 'foods', element: <AdminFoodsPage /> },
-          { path: 'analytics', element: <AdminAnalyticsPage /> },
-          {
-            path: 'categories',
-            element: (
-              <RequireRole roles={['Admin']}>
-                <AdminCategoriesPage />
-              </RequireRole>
-            ),
-          },
-          {
-            path: 'gallery',
-            element: (
-              <RequireRole roles={['Admin']}>
-                <AdminGalleryPage />
-              </RequireRole>
-            ),
-          },
-          {
-            path: 'settings',
-            element: (
-              <RequireRole roles={['Admin']}>
-                <AdminSettingsPage />
-              </RequireRole>
-            ),
-          },
-          {
-            path: 'users',
-            element: (
-              <RequireRole roles={['Admin']}>
-                <AdminUsersPage />
-              </RequireRole>
-            ),
-          },
-        ],
       },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        path: 'gallery',
+        element: (
+          <RequireRole roles={['Admin']}>
+            <AdminGalleryPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'settings',
+        element: (
+          <RequireRole roles={['Admin']}>
+            <AdminSettingsPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <RequireRole roles={['Admin']}>
+            <AdminUsersPage />
+          </RequireRole>
+        ),
+      },
     ],
   },
 ])

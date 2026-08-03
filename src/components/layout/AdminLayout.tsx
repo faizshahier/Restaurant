@@ -1,47 +1,19 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { Container } from './Container'
-import { useAuth } from '../../context/AuthContext'
-import type { UserRole } from '../../types'
+import { Outlet } from 'react-router-dom'
+import { AdminHeader } from './AdminHeader'
 
-interface AdminLink {
-  to: string
-  label: string
-  roles: UserRole[]
-}
-
-const ADMIN_LINKS: AdminLink[] = [
-  { to: '/admin/orders', label: 'Orders', roles: ['Admin', 'restaurant_manager'] },
-  { to: '/admin/foods', label: 'Foods', roles: ['Admin', 'restaurant_manager'] },
-  { to: '/admin/analytics', label: 'Analytics', roles: ['Admin', 'restaurant_manager'] },
-  { to: '/admin/categories', label: 'Categories', roles: ['Admin'] },
-  { to: '/admin/gallery', label: 'Gallery', roles: ['Admin'] },
-  { to: '/admin/settings', label: 'Settings', roles: ['Admin'] },
-  { to: '/admin/users', label: 'Users', roles: ['Admin'] },
-]
-
-const linkClasses = ({ isActive }: { isActive: boolean }) =>
-  `rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-    isActive
-      ? 'border-primary-300 bg-primary-400 text-charcoal-900'
-      : 'border-charcoal-700 text-charcoal-100 hover:border-primary-300 hover:text-primary-300'
-  }`
-
+/**
+ * Full-page shell for the admin dashboard.
+ *
+ * This is a sibling of the public Layout, not a child of it, so none of the public
+ * site's navigation or footer appears inside the dashboard.
+ */
 export function AdminLayout() {
-  const { user } = useAuth()
-  const visibleLinks = ADMIN_LINKS.filter((link) => user && link.roles.includes(user.role))
-
   return (
-    <div>
-      <Container>
-        <div className="flex flex-wrap gap-2 border-b border-charcoal-700 pb-6">
-          {visibleLinks.map((link) => (
-            <NavLink key={link.to} to={link.to} className={linkClasses}>
-              {link.label}
-            </NavLink>
-          ))}
-        </div>
-      </Container>
-      <Outlet />
+    <div className="flex min-h-screen flex-col bg-charcoal-900">
+      <AdminHeader />
+      <main className="flex-1">
+        <Outlet />
+      </main>
     </div>
   )
 }

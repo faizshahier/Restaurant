@@ -1,59 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { isRestaurantOpenNow } from '../../lib/hours'
-import { SettingsService } from '../../services'
+import { useRestaurantBranding } from '../../hooks/useRestaurantBranding'
 import { AuthSection } from './AuthSection'
+import { BrandLogo } from './BrandLogo'
 import { MobileNav } from './MobileNav'
+import { OpenStatusBadge } from './OpenStatusBadge'
 import { NAV_LINKS } from './navLinks'
 
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
   `transition-colors hover:text-primary-300 ${isActive ? 'text-primary-300' : 'text-charcoal-50'}`
 
+/** Header for the public website. The admin dashboard uses AdminHeader instead. */
 export function Header() {
-  const [restaurantName, setRestaurantName] = useState('The Restaurant')
-  const [logo, setLogo] = useState('')
-  const [isOpenNow, setIsOpenNow] = useState<boolean | null>(null)
+  const { restaurantName, logo, isOpenNow } = useRestaurantBranding()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  useEffect(() => {
-    // Keeps the default name and hides the open/closed badge if this fails,
-    // rather than throwing an unhandled rejection on every page load.
-    SettingsService.getSettings()
-      .then((settings) => {
-        setRestaurantName(settings.restaurant_name)
-        setLogo(settings.logo)
-        setIsOpenNow(isRestaurantOpenNow(settings.opening_hours))
-      })
-      .catch((err: unknown) => console.error('Failed to load settings', err))
-  }, [])
 
   return (
     <header className="sticky top-0 z-50 border-b border-charcoal-700 bg-charcoal-900/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <NavLink to="/" className="flex items-center gap-3">
-          {logo ? (
-            // object-contain (not cover) shows the whole logo without cropping; the
-            // white chip keeps a light-background logo looking intentional on the dark
-            // header. The wordmark is in the logo, so the text name is not repeated.
-            <img
-              src={logo}
-              alt={restaurantName || 'Restaurant logo'}
-              className="h-11 w-auto rounded-md bg-white object-contain p-1"
-            />
-          ) : (
-            <span className="font-display text-xl font-semibold tracking-wide text-primary-200">
-              {restaurantName || 'The Restaurant'}
-            </span>
-          )}
-          {isOpenNow !== null && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                isOpenNow ? 'bg-available/20 text-available' : 'bg-out-of-stock/20 text-out-of-stock'
-              }`}
-            >
-              {isOpenNow ? 'Open Now' : 'Closed'}
-            </span>
-          )}
+          <BrandLogo logo={logo} restaurantName={restaurantName} />
+          <OpenStatusBadge isOpenNow={isOpenNow} />
         </NavLink>
 
         <div className="hidden items-center gap-8 md:flex">

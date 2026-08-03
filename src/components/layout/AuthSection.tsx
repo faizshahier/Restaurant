@@ -14,7 +14,7 @@ export function AuthSection({ onNavigate }: AuthSectionProps) {
     return (
       <div className="flex items-center gap-3 text-sm">
         {(user.role === 'Admin' || user.role === 'restaurant_manager') && (
-          <Link to="/admin" onClick={onNavigate} className="font-medium text-primary-300 hover:underline">
+          <Link to="/admin" target='_blank' onClick={onNavigate} className="font-medium text-primary-300 hover:underline">
             Admin
           </Link>
         )}
