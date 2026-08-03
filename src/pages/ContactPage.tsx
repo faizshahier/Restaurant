@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Container } from '../components/layout/Container'
+import { StaticMap } from '../components/map/StaticMap'
 import { SettingsService } from '../services'
 import type { Settings } from '../types'
 
@@ -100,9 +101,10 @@ export function ContactPage() {
           </div>
         </div>
 
-        <div className="flex min-h-64 items-center justify-center rounded-lg border border-charcoal-700 bg-charcoal-800 text-sm text-charcoal-400">
-          Map coming soon
-        </div>
+        {/* Waits for settings so the map is built from the saved address, not an
+            empty string on the first render. */}
+        {/* `key` remounts the map with fresh state if the saved address changes. */}
+        <div>{settings && <StaticMap key={settings.address} address={settings.address} />}</div>
       </div>
     </Container>
   )
