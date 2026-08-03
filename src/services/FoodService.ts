@@ -19,8 +19,9 @@ export class FoodService {
   }
 
   static async getAvailableItems(): Promise<Food[]> {
-    const items = await FoodRepository.findAll()
-    return items.filter((item) => item.available)
+    // The database does the filtering, so unavailable dishes never travel to the
+    // browser. Previously every row was fetched and filtered here.
+    return FoodRepository.findAvailable()
   }
 
   static async getItemById(id: string): Promise<Food | null> {

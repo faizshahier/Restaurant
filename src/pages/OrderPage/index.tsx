@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Container } from '../../components/layout/Container'
 import { Field, inputClasses } from '../../components/form/Field'
 import { formatPrice, getDiscountedPrice } from '../../lib/format'
-import { FoodService, OrderService } from '../../services'
+import { CategoryService, FoodService, OrderService } from '../../services'
 import { createOrderSchema } from '../../validation/schemas'
-import type { Food, Order, OrderItem } from '../../types'
+import type { Category, Food, Order, OrderItem } from '../../types'
 import { MenuSelector } from './MenuSelector'
 import { OrderConfirmation } from './OrderConfirmation'
 import { toErrorMessage } from '../../lib/errors'
@@ -22,6 +22,8 @@ type FormErrors = Partial<Record<'customer_name' | 'phone' | 'location' | 'items
 
 export function OrderPage() {
   const [foods, setFoods] = useState<Food[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoadingMenu, setIsLoadingMenu] = useState(true)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [form, setForm] = useState<FormState>(initialForm)
   const [errors, setErrors] = useState<FormErrors>({})
@@ -30,11 +32,18 @@ export function OrderPage() {
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
 
   useEffect(() => {
-    FoodService.getAvailableItems()
-      .then(setFoods)
+    // Both requests go out together instead of one after the other, so the menu
+    // appears as soon as the slower of the two finishes.
+    Promise.all([FoodService.getAvailableItems(), CategoryService.getAllCategories()])
+      .then(([availableFoods, allCategories]) => {
+        setFoods(availableFoods)
+        setCategories(allCategories)
+        setIsLoadingMenu(false)
+      })
       .catch((err: unknown) => {
         console.error('Failed to load menu items', err)
         setSubmitError("We couldn't load the menu. Please check your connection and try again.")
+        setIsLoadingMenu(false)
       })
   }, [])
 
@@ -102,10 +111,28 @@ export function OrderPage() {
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6" noValidate>
         <MenuSelector
           foods={foods}
+          categories={categories}
           quantities={quantities}
+          isLoading={isLoadingMenu}
           itemsError={errors.items}
           onQuantityChange={updateQuantity}
         />
+
+        {items.length > 0 && (
+          <div className="rounded-xl border border-charcoal-700 bg-charcoal-800 p-5">
+            <h2 className="font-display text-lg text-charcoal-50">Your Order</h2>
+            <ul className="mt-3 space-y-1.5">
+              {items.map((item) => (
+                <li key={item.food_id} className="flex justify-between gap-4 text-sm text-charcoal-100">
+                  <span>
+                    {item.quantity} × {item.food_name}
+                  </span>
+                  <span className="text-charcoal-50">{formatPrice(item.price * item.quantity)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Name" error={errors.customer_name}>

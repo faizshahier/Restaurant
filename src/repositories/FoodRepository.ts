@@ -20,6 +20,21 @@ export class FoodRepository {
     return data
   }
 
+  /**
+   * Only the dishes shown to customers. Filtering in the database (rather than
+   * fetching every row and filtering in the browser) means unavailable dishes are
+   * never sent over the network at all.
+   */
+  static async findAvailable(): Promise<Food[]> {
+    const { data, error } = await supabase
+      .from('foods')
+      .select('*')
+      .eq('available', true)
+      .order('name')
+    if (error) throw toAppError(error)
+    return data
+  }
+
   static async findById(id: string): Promise<Food | null> {
     const { data, error } = await supabase.from('foods').select('*').eq('id', id).maybeSingle()
     if (error) throw toAppError(error)
