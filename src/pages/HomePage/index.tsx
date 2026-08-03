@@ -3,6 +3,7 @@ import { CategoryService, FoodService } from '../../services'
 import type { Category, Food } from '../../types'
 import { HeroSection } from './HeroSection'
 import { FeaturedDishes } from './FeaturedDishes'
+import { CategoryStrip } from './CategoryStrip'
 import { HighlightsSection } from './HighlightsSection'
 import { CtaBanner } from './CtaBanner'
 import { OurStorySection } from './OurStorySection'
@@ -29,6 +30,7 @@ export function HomePage() {
     <>
       <HeroSection />
       <FeaturedDishes foods={featuredFoods} categoryNameById={categoryNameById} />
+      <CategoryStrip categories={categories} />
       <HighlightsSection />
       <CtaBanner />
       <OurStorySection />
